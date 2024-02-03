@@ -3,10 +3,12 @@ package set
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
 // Collection, T is interact{} type
 type Set[T any] struct {
+	n          int32
 	item       map[string]T   // Element storage map, key is the unique identifier of the element, value is the element
 	identifier func(T) string // Generate unique identification function for elements，
 	rwMux      sync.RWMutex
@@ -29,11 +31,16 @@ func NewSetFunc[T any](identifier func(T) string) *Set[T] {
 	}
 }
 
+func (s *Set[T]) Length() int {
+	return int(s.n)
+}
+
 func (s *Set[T]) Append(items ...T) {
 	s.rwMux.Lock()
 	defer s.rwMux.Unlock()
 	for _, v := range items {
 		s.item[s.identifier(v)] = v
+		atomic.AddInt32(&(s.n), 1)
 	}
 }
 
@@ -50,6 +57,7 @@ func (s *Set[T]) Remove(value T) {
 	s.rwMux.Lock()
 	defer s.rwMux.Unlock()
 	delete(s.item, s.identifier(value))
+	atomic.AddInt32(&(s.n), -1)
 }
 
 func (s *Set[T]) Contains(value T) (exist bool) {
