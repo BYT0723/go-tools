@@ -50,30 +50,32 @@ func (c *Client) PostAny(ctx context.Context, rawUrl string, header http.Header,
 func (c *Client) do(ctx context.Context, method, rawUrl string, payload any, header http.Header, result any, isDecode bool) (statusCode int, body []byte, err error) {
 	var buf bytes.Buffer
 
-	if method == http.MethodGet {
-		u, err := url.Parse(rawUrl)
-		if err != nil {
-			return 0, nil, err
+	if payload != nil {
+		if method == http.MethodGet {
+			u, err := url.Parse(rawUrl)
+			if err != nil {
+				return 0, nil, err
+			}
+			var (
+				query = u.Query()
+				t     = reflect.TypeOf(payload)
+				v     = reflect.ValueOf(payload)
+			)
+			if t.Kind() != reflect.Map || t.Kind() != reflect.Struct {
+				return 0, nil, errors.New("GET Params need [Map|Struct]")
+			}
+			for i := 0; i < t.NumField(); i++ {
+				query.Add(t.Field(i).Name, fmt.Sprint(v.Field(i).Interface()))
+			}
+			u.RawQuery = query.Encode()
+			rawUrl = u.String()
+		} else {
+			bs, err := c.encoder(ctx, payload)
+			if err != nil {
+				return 0, nil, err
+			}
+			buf.Write(bs)
 		}
-		var (
-			query = u.Query()
-			t     = reflect.TypeOf(payload)
-			v     = reflect.ValueOf(payload)
-		)
-		if t.Kind() != reflect.Map || t.Kind() != reflect.Struct {
-			return 0, nil, errors.New("GET Params need [Map|Struct]")
-		}
-		for i := 0; i < t.NumField(); i++ {
-			query.Add(t.Field(i).Name, fmt.Sprint(v.Field(i).Interface()))
-		}
-		u.RawQuery = query.Encode()
-		rawUrl = u.String()
-	} else {
-		bs, err := c.encoder(ctx, payload)
-		if err != nil {
-			return 0, nil, err
-		}
-		buf.Write(bs)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, rawUrl, &buf)
