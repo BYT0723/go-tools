@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"net/http"
+	"io"
 )
 
-type Decoder func(context.Context, *http.Response, any) error
+type Decoder func(context.Context, io.Reader, any) error
 
-func JsonDecoder(ctx context.Context, resp *http.Response, payload any) error {
-	return json.NewDecoder(resp.Body).Decode(payload)
+func JsonDecoder(ctx context.Context, reader io.Reader, payload any) error {
+	return json.NewDecoder(reader).Decode(payload)
 }
 
-func GobDecoder(ctx context.Context, resp *http.Response, payload any) error {
-	return gob.NewDecoder(resp.Body).Decode(payload)
+func GobDecoder(ctx context.Context, reader io.Reader, payload any) error {
+	return gob.NewDecoder(reader).Decode(payload)
 }

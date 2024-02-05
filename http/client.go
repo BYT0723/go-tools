@@ -30,25 +30,26 @@ func NewClient(opts ...Option) *Client {
 }
 
 func (c *Client) Get(ctx context.Context, rawUrl string, header http.Header, payload any) (code int, body []byte, err error) {
-	return c.do(ctx, http.MethodGet, rawUrl, payload, header, nil, true)
+	return c.handle(ctx, http.MethodGet, rawUrl, payload, header, nil, false)
 }
 
 func (c *Client) Post(ctx context.Context, rawUrl string, header http.Header, payload any) (code int, body []byte, err error) {
-	return c.do(ctx, http.MethodPost, rawUrl, payload, header, nil, true)
+	return c.handle(ctx, http.MethodPost, rawUrl, payload, header, nil, false)
 }
 
 func (c *Client) GetAny(ctx context.Context, rawUrl string, header http.Header, payload any, result any) (code int, err error) {
-	code, _, err = c.do(ctx, http.MethodGet, rawUrl, payload, header, result, true)
+	code, _, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, result, true)
 	return
 }
 
 func (c *Client) PostAny(ctx context.Context, rawUrl string, header http.Header, payload any, result any) (code int, err error) {
-	code, _, err = c.do(ctx, http.MethodPost, rawUrl, payload, header, result, true)
+	code, _, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, result, true)
 	return
 }
 
-func (c *Client) do(ctx context.Context, method, rawUrl string, payload any, header http.Header, result any, isDecode bool) (statusCode int, body []byte, err error) {
+func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Header, payload any) (code int, body io.ReadCloser, err error) {
 	var buf bytes.Buffer
+	defer buf.Reset()
 
 	if payload != nil {
 		if method == http.MethodGet {
@@ -92,12 +93,23 @@ func (c *Client) do(ctx context.Context, method, rawUrl string, payload any, hea
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	code = resp.StatusCode
+	body = resp.Body
+	return
+}
+
+func (c *Client) handle(ctx context.Context, method, rawUrl string, payload any, header http.Header, result any, isDecode bool) (code int, body []byte, err error) {
+	code, resp, err := c.Do(ctx, method, rawUrl, header, payload)
+	if err != nil {
+		return
+	}
+	defer resp.Close()
 
 	if isDecode {
 		err = c.decoder(ctx, resp, result)
 	} else {
-		body, err = io.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp)
 	}
 	return
 }

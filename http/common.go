@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var defaultClient = &Client{}
+var defaultClient = NewClient()
 
 func Get(rawUrl string, header http.Header, data any) (code int, body []byte, err error) {
 	return defaultClient.Get(context.Background(), rawUrl, header, data)
