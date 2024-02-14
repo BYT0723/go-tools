@@ -22,22 +22,22 @@ func GetTimeout(rawUrl string, header http.Header, data any, timeout time.Durati
 	return defaultClient.Get(ctx, rawUrl, header, data)
 }
 
-func GetAny[T any](rawUrl string, header http.Header, data any) (code int, resp T, err error) {
-	resp = *new(T)
+func GetAny[T any](rawUrl string, header http.Header, data any) (code int, resp *T, err error) {
+	resp = new(T)
 	code, err = defaultClient.GetAny(context.Background(), rawUrl, header, data, resp)
 	return
 }
 
-func GetAnyWithContext[T any](ctx context.Context, rawUrl string, header http.Header, data any) (code int, resp T, err error) {
-	resp = *new(T)
+func GetAnyWithContext[T any](ctx context.Context, rawUrl string, header http.Header, data any) (code int, resp *T, err error) {
+	resp = new(T)
 	code, err = defaultClient.GetAny(ctx, rawUrl, header, data, resp)
 	return
 }
 
-func GetAnyTimeout[T any](rawUrl string, header http.Header, data any, timeout time.Duration) (code int, resp T, err error) {
+func GetAnyTimeout[T any](rawUrl string, header http.Header, data any, timeout time.Duration) (code int, resp *T, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	resp = *new(T)
+	resp = new(T)
 	code, err = defaultClient.GetAny(ctx, rawUrl, header, data, resp)
 	return
 }
@@ -56,22 +56,22 @@ func PostTimeout(rawUrl string, header http.Header, data any, timeout time.Durat
 	return defaultClient.Post(ctx, rawUrl, header, data)
 }
 
-func PostAny[T any](rawUrl string, header http.Header, data any) (code int, resp T, err error) {
-	resp = *new(T)
+func PostAny[T any](rawUrl string, header http.Header, data any) (code int, resp *T, err error) {
+	resp = new(T)
 	code, err = defaultClient.PostAny(context.Background(), rawUrl, header, data, resp)
 	return
 }
 
-func PostAnyWithContext[T any](ctx context.Context, rawUrl string, header http.Header, data any, timeout time.Duration) (code int, resp T, err error) {
-	resp = *new(T)
+func PostAnyWithContext[T any](ctx context.Context, rawUrl string, header http.Header, data any, timeout time.Duration) (code int, resp *T, err error) {
+	resp = new(T)
 	code, err = defaultClient.PostAny(ctx, rawUrl, header, data, resp)
 	return
 }
 
-func PostAnyTimeout[T any](rawUrl string, header http.Header, data any, timeout time.Duration) (code int, resp T, err error) {
+func PostAnyTimeout[T any](rawUrl string, header http.Header, data any, timeout time.Duration) (code int, resp *T, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	resp = *new(T)
+	resp = new(T)
 	code, err = defaultClient.PostAny(ctx, rawUrl, header, data, resp)
 	return
 }
