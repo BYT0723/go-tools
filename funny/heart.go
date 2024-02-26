@@ -33,31 +33,20 @@ func getTermSize() (size *termSize, err error) {
 
 func draw(maxRow, maxCol int) {
 	// 打印爱心形状
-	for y := maxRow / 2; y >= -maxRow/2; y-- {
-		for x := -maxCol / 2; x <= maxCol/2; x++ {
-			if love(x, y) {
-				fmt.Print("*")
-			} else {
-				fmt.Print(" ")
-			}
-		}
-	}
-
-	for row := maxRow / 2; row >= 0-maxRow/2; row-- {
-		for col := 0 - maxCol/2; col <= maxCol; col++ {
+	for row := maxRow / 2; row > 0-maxRow/2; row-- {
+		for col := 0 - maxCol/2; col < maxCol/2; col++ {
 			if love(col, row) {
 				fmt.Print("*")
 			} else {
 				fmt.Print(" ")
 			}
 		}
-		fmt.Println()
 	}
 }
 
 // 爱心函数
 func love(x, y int) bool {
-	xf := float64(x) / 40.0
-	yf := float64(y) / 20.0
+	xf := float64(x) / 20
+	yf := float64(y) / 20
 	return math.Pow(math.Pow(xf, 2)+math.Pow(yf, 2)-1, 3)-math.Pow(xf, 2)*math.Pow(yf, 3) <= 0
 }
