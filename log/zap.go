@@ -69,7 +69,7 @@ func Init(opts ...Option) {
 		}
 
 		core := zapcore.NewTee(cores...)
-		l.logger = zap.New(core)
+		l.logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	})
 }
 
