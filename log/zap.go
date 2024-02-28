@@ -59,10 +59,14 @@ func Init(opts ...Option) {
 		} else {
 			logNamePrefix := strings.TrimSuffix(l.Cfg.Filename, filepath.Ext(l.Cfg.Filename))
 			for i := -1; i <= int(zap.FatalLevel); i++ {
+				logLevel := zapcore.Level(i)
+				if logLevel < level.Level() {
+					continue
+				}
 				cores = append(cores, newCore(
-					zap.NewAtomicLevelAt(zapcore.Level(i)),
+					zap.NewAtomicLevelAt(logLevel),
 					true,
-					fmt.Sprintf("%s-%s.log", logNamePrefix, zapcore.Level(i).String()),
+					fmt.Sprintf("%s-%s.log", logNamePrefix, logLevel.String()),
 					l.Cfg,
 				))
 			}
