@@ -57,16 +57,20 @@ func Init(opts ...Option) {
 		if l.Cfg.AllIn {
 			cores = append(cores, newCore(level, false, l.Cfg.Filename, l.Cfg))
 		} else {
-			logNamePrefix := strings.TrimSuffix(l.Cfg.Filename, filepath.Ext(l.Cfg.Filename))
+			var (
+				logNameExt    = filepath.Ext(l.Cfg.Filename)
+				logNamePrefix = strings.TrimSuffix(l.Cfg.Filename, logNameExt)
+				logLevel      zapcore.Level
+			)
 			for i := -1; i <= int(zap.FatalLevel); i++ {
-				logLevel := zapcore.Level(i)
-				if logLevel < level.Level() {
+				logLevel = zapcore.Level(i)
+				if !level.Enabled(logLevel) {
 					continue
 				}
 				cores = append(cores, newCore(
 					zap.NewAtomicLevelAt(logLevel),
 					true,
-					fmt.Sprintf("%s-%s.log", logNamePrefix, logLevel.String()),
+					fmt.Sprintf("%s-%s%s", logNamePrefix, logLevel.String(), logNameExt),
 					l.Cfg,
 				))
 			}
