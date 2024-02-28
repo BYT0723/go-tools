@@ -20,7 +20,7 @@ func newConsoleCore(level zap.AtomicLevel) zapcore.Core {
 	)
 }
 
-func newCore(level zap.AtomicLevel, cfg *LoggerConf) zapcore.Core {
+func newCore(level zap.AtomicLevel, name string, cfg *LoggerConf) zapcore.Core {
 	productionCfg := zap.NewProductionEncoderConfig()
 	productionCfg.TimeKey = "timestamp"
 	productionCfg.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339Nano)
@@ -28,7 +28,7 @@ func newCore(level zap.AtomicLevel, cfg *LoggerConf) zapcore.Core {
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(productionCfg),
 		zapcore.AddSync(&lumberjack.Logger{
-			Filename:   cfg.Filename,
+			Filename:   name,
 			MaxSize:    cfg.MaxSize,
 			MaxBackups: cfg.MaxBackups,
 			MaxAge:     cfg.MaxAge,

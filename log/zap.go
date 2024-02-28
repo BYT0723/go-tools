@@ -1,6 +1,9 @@
 package log
 
 import (
+	"fmt"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"go.uber.org/zap"
@@ -49,12 +52,33 @@ func Init(opts ...Option) {
 		}
 
 		var (
-			console = newConsoleCore(level)
-			debug   = newCore(zap.NewAtomicLevelAt(zap.DebugLevel), l.Cfg)
-			info    = newCore(zap.NewAtomicLevelAt(zap.InfoLevel), l.Cfg)
-			warn    = newCore(zap.NewAtomicLevelAt(zap.WarnLevel), l.Cfg)
-			error   = newCore(zap.NewAtomicLevelAt(zap.ErrorLevel), l.Cfg)
-			dpanic  = newCore(zap.NewAtomicLevelAt(zap.DPanicLevel), l.Cfg)
+			logNamePrefix = strings.TrimSuffix(l.Cfg.Filename, filepath.Ext(l.Cfg.Filename))
+			console       = newConsoleCore(level)
+			debug         = newCore(
+				zap.NewAtomicLevelAt(zap.DebugLevel),
+				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.DebugLevel.String()),
+				l.Cfg,
+			)
+			info = newCore(
+				zap.NewAtomicLevelAt(zap.InfoLevel),
+				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.InfoLevel.String()),
+				l.Cfg,
+			)
+			warn = newCore(
+				zap.NewAtomicLevelAt(zap.WarnLevel),
+				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.WarnLevel.String()),
+				l.Cfg,
+			)
+			error = newCore(
+				zap.NewAtomicLevelAt(zap.ErrorLevel),
+				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.ErrorLevel.String()),
+				l.Cfg,
+			)
+			dpanic = newCore(
+				zap.NewAtomicLevelAt(zap.DPanicLevel),
+				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.DPanicLevel.String()),
+				l.Cfg,
+			)
 		)
 
 		core := zapcore.NewTee(console, debug, info, warn, error, dpanic)
