@@ -18,6 +18,7 @@ type Logger struct {
 type LoggerConf struct {
 	Filename string
 	Level    string
+	AllIn    bool
 	// uint: MB
 	MaxBackups int
 	MaxSize    int
@@ -36,6 +37,7 @@ func Init(opts ...Option) {
 			Cfg: &LoggerConf{
 				Filename:   "logs/app.log",
 				Level:      "info",
+				AllIn:      false,
 				MaxBackups: 3,
 				MaxSize:    10,
 				MaxAge:     7,
@@ -51,37 +53,22 @@ func Init(opts ...Option) {
 			panic(err)
 		}
 
-		var (
-			logNamePrefix = strings.TrimSuffix(l.Cfg.Filename, filepath.Ext(l.Cfg.Filename))
-			console       = newConsoleCore(level)
-			debug         = newCore(
-				zap.NewAtomicLevelAt(zap.DebugLevel),
-				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.DebugLevel.String()),
-				l.Cfg,
-			)
-			info = newCore(
-				zap.NewAtomicLevelAt(zap.InfoLevel),
-				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.InfoLevel.String()),
-				l.Cfg,
-			)
-			warn = newCore(
-				zap.NewAtomicLevelAt(zap.WarnLevel),
-				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.WarnLevel.String()),
-				l.Cfg,
-			)
-			error = newCore(
-				zap.NewAtomicLevelAt(zap.ErrorLevel),
-				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.ErrorLevel.String()),
-				l.Cfg,
-			)
-			dpanic = newCore(
-				zap.NewAtomicLevelAt(zap.DPanicLevel),
-				fmt.Sprintf("%s-%s.log", logNamePrefix, zap.DPanicLevel.String()),
-				l.Cfg,
-			)
-		)
+		cores := []zapcore.Core{newConsoleCore(level)}
+		if l.Cfg.AllIn {
+			cores = append(cores, newCore(level, false, l.Cfg.Filename, l.Cfg))
+		} else {
+			logNamePrefix := strings.TrimSuffix(l.Cfg.Filename, filepath.Ext(l.Cfg.Filename))
+			for i := -1; i <= int(zap.FatalLevel); i++ {
+				cores = append(cores, newCore(
+					zap.NewAtomicLevelAt(zapcore.Level(i)),
+					true,
+					fmt.Sprintf("%s-%s.log", logNamePrefix, zapcore.Level(i).String()),
+					l.Cfg,
+				))
+			}
+		}
 
-		core := zapcore.NewTee(console, debug, info, warn, error, dpanic)
+		core := zapcore.NewTee(cores...)
 		l.logger = zap.New(core)
 	})
 }

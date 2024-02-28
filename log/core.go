@@ -20,10 +20,15 @@ func newConsoleCore(level zap.AtomicLevel) zapcore.Core {
 	)
 }
 
-func newCore(level zap.AtomicLevel, name string, cfg *LoggerConf) zapcore.Core {
+func newCore(level zap.AtomicLevel, onlyLevel bool, name string, cfg *LoggerConf) zapcore.Core {
 	productionCfg := zap.NewProductionEncoderConfig()
 	productionCfg.TimeKey = "timestamp"
 	productionCfg.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339Nano)
+
+	var levelEnabler zapcore.LevelEnabler = level
+	if onlyLevel {
+		levelEnabler = zap.LevelEnablerFunc(func(l zapcore.Level) bool { return l == level.Level() })
+	}
 
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(productionCfg),
@@ -33,6 +38,6 @@ func newCore(level zap.AtomicLevel, name string, cfg *LoggerConf) zapcore.Core {
 			MaxBackups: cfg.MaxBackups,
 			MaxAge:     cfg.MaxAge,
 		}),
-		level,
+		levelEnabler,
 	)
 }
