@@ -168,3 +168,7 @@ func Fatalw(msg string, keyValues ...any) {
 func ZapLogger() *zap.Logger {
 	return l.logger
 }
+
+func Sync() error {
+	return l.logger.Sync()
+}
