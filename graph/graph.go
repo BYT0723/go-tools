@@ -1,16 +1,17 @@
-package funny
+package graph
 
 import (
-	"fmt"
 	"math"
-)
 
-type BinaryFunction func(x, y float64) bool
+	"github.com/BYT0723/go-tools/graph/functions"
+	"github.com/BYT0723/go-tools/system"
+)
 
 type Graph struct {
 	XScale float64
 	YScale float64
-	Edge   *Edge
+	// 打印字符的样式
+	Edge *Edge
 }
 
 type Edge struct {
@@ -28,8 +29,8 @@ type Edge struct {
 
 var defaultEdge = &Edge{Zero: "+", X: "-", Y: "|", FC: "*", Scale: "+"}
 
-func (g *Graph) Draw(fc BinaryFunction) error {
-	size, err := GetTermSize()
+func (g *Graph) Draw(fc functions.BinaryFunction) error {
+	size, err := system.GetTermSize()
 	if err != nil {
 		return err
 	}
@@ -46,23 +47,23 @@ func (g *Graph) Draw(fc BinaryFunction) error {
 				x = float64(col) * g.XScale
 			)
 			if fc(x, y) {
-				fmt.Print("*")
+				print(g.Edge.FC)
 			} else if x == 0 && y == 0 {
-				fmt.Print(g.Edge)
+				print(g.Edge.Zero)
 			} else if x == 0 {
 				if y == math.Floor(y) {
-					fmt.Print(g.Edge.Scale)
+					print(g.Edge.Scale)
 				} else {
-					fmt.Print(g.Edge.Y)
+					print(g.Edge.Y)
 				}
 			} else if y == 0 {
 				if x == math.Floor(x) {
-					fmt.Print(g.Edge.Scale)
+					print(g.Edge.Scale)
 				} else {
-					fmt.Print(g.Edge.X)
+					print(g.Edge.X)
 				}
 			} else {
-				fmt.Print(" ")
+				print(" ")
 			}
 		}
 	}

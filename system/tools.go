@@ -1,4 +1,4 @@
-package funny
+package system
 
 import (
 	"syscall"

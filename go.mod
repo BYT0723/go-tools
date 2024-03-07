@@ -1,6 +1,6 @@
 module github.com/BYT0723/go-tools
 
-go 1.18
+go 1.21
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
