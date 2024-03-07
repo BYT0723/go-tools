@@ -14,21 +14,6 @@ type Graph struct {
 	Edge *Edge
 }
 
-type Edge struct {
-	// 原点字符
-	Zero string
-	// X轴
-	X string
-	// Y轴
-	Y string
-	// 符合函数的字符
-	FC string
-	// 刻度线
-	Scale string
-}
-
-var defaultEdge = &Edge{Zero: "+", X: "-", Y: "|", FC: "*", Scale: "+"}
-
 func (g *Graph) Draw(fc functions.BinaryFunction) error {
 	size, err := system.GetTermSize()
 	if err != nil {
@@ -36,7 +21,7 @@ func (g *Graph) Draw(fc functions.BinaryFunction) error {
 	}
 
 	if g.Edge == nil {
-		g.Edge = defaultEdge
+		g.Edge = DefaultEdge
 	}
 
 	// 打印爱心形状
