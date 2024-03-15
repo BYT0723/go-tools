@@ -106,10 +106,16 @@ func (c *Client) handle(ctx context.Context, method, rawUrl string, payload any,
 	}
 	defer resp.Close()
 
+	body, err = io.ReadAll(resp)
+	if err != nil {
+		return
+	}
+
 	if isDecode {
-		err = c.decoder(ctx, resp, result)
-	} else {
-		body, err = io.ReadAll(resp)
+		err = c.decoder(ctx, bytes.NewBuffer(body), result)
+		if err != nil {
+			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, body)
+		}
 	}
 	return
 }
