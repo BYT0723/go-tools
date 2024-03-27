@@ -15,16 +15,18 @@ type Set[T any] struct {
 }
 
 // Create a new Set with element type T
-func NewSet[T any]() *Set[T] {
-	return &Set[T]{
+func NewSet[T any](items ...T) *Set[T] {
+	res := &Set[T]{
 		item:       map[string]T{},
 		identifier: func(t T) string { return fmt.Sprint(t) },
 	}
+	res.Append(items...)
+	return res
 }
 
 // Create a new Set with element type T
 // identifier, Generate unique identification function for elements, used for custom deduplication
-func NewSetFunc[T any](identifier func(T) string) *Set[T] {
+func NewSetFunc[T any](identifier func(T) string, items ...T) *Set[T] {
 	return &Set[T]{
 		item:       map[string]T{},
 		identifier: identifier,
@@ -39,14 +41,17 @@ func (s *Set[T]) Append(items ...T) {
 	s.rwMux.Lock()
 	defer s.rwMux.Unlock()
 	for _, v := range items {
+		if _, ok := s.item[s.identifier(v)]; !ok {
+			atomic.AddInt32(&(s.n), 1)
+		}
 		s.item[s.identifier(v)] = v
-		atomic.AddInt32(&(s.n), 1)
 	}
 }
 
 func (s *Set[T]) Values() (values []T) {
 	s.rwMux.RLock()
 	defer s.rwMux.RUnlock()
+	values = []T{}
 	for _, v := range s.item {
 		values = append(values, v)
 	}
@@ -56,14 +61,18 @@ func (s *Set[T]) Values() (values []T) {
 func (s *Set[T]) Remove(value T) {
 	s.rwMux.Lock()
 	defer s.rwMux.Unlock()
-	delete(s.item, s.identifier(value))
-	atomic.AddInt32(&(s.n), -1)
+	if _, ok := s.item[s.identifier(value)]; ok {
+		delete(s.item, s.identifier(value))
+		atomic.AddInt32(&(s.n), -1)
+	}
 }
 
 func (s *Set[T]) Contains(value T) (exist bool) {
 	s.rwMux.RLock()
 	defer s.rwMux.RUnlock()
-	_, exist = s.item[s.identifier(value)]
+
+	v2, exist := s.item[s.identifier(value)]
+	fmt.Printf("v1: %v\tv2: %v\n", value, v2)
 	return
 }
 
@@ -89,7 +98,7 @@ func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 
 // Intersection 返回两个集合的交集
 func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
-	intersectionSet := NewSetFunc[T](s.identifier)
+	intersectionSet := NewSetFunc(s.identifier)
 	s.rwMux.RLock()
 	other.rwMux.RLock()
 	defer s.rwMux.RUnlock()
@@ -106,7 +115,7 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 
 // Difference 返回两个集合的差集
 func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
-	differenceSet := NewSetFunc[T](s.identifier)
+	differenceSet := NewSetFunc(s.identifier)
 	s.rwMux.RLock()
 	other.rwMux.RLock()
 	defer s.rwMux.RUnlock()
@@ -118,4 +127,21 @@ func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
 		}
 	}
 	return differenceSet
+}
+
+func (s *Set[T]) Equal(other *Set[T]) bool {
+	if s.Length() != other.Length() {
+		return false
+	}
+	s.rwMux.RLock()
+	other.rwMux.RLock()
+	defer s.rwMux.RUnlock()
+	defer other.rwMux.RUnlock()
+
+	for _, v := range s.item {
+		if !other.Contains(v) {
+			return false
+		}
+	}
+	return true
 }

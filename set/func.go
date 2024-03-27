@@ -2,7 +2,7 @@ package set
 
 // Union 返回两个集合的并集
 func Union[T any](s1, s2 *Set[T]) *Set[T] {
-	unionSet := NewSetFunc[T](s1.identifier)
+	unionSet := NewSetFunc(s1.identifier)
 
 	s1.rwMux.RLock()
 	s2.rwMux.RLock()
@@ -22,7 +22,7 @@ func Union[T any](s1, s2 *Set[T]) *Set[T] {
 
 // Union 返回两个集合的并集
 func UnionFunc[T any](s1, s2 *Set[T], identifier func(T) string) *Set[T] {
-	unionSet := NewSetFunc[T](identifier)
+	unionSet := NewSetFunc(identifier)
 
 	s1.rwMux.RLock()
 	s2.rwMux.RLock()
@@ -42,7 +42,7 @@ func UnionFunc[T any](s1, s2 *Set[T], identifier func(T) string) *Set[T] {
 
 // Intersection 返回两个集合的交集
 func Intersection[T any](s1, s2 *Set[T]) *Set[T] {
-	intersectionSet := NewSetFunc[T](s1.identifier)
+	intersectionSet := NewSetFunc(s1.identifier)
 	s1.rwMux.RLock()
 	s2.rwMux.RLock()
 	defer s1.rwMux.RUnlock()
@@ -58,7 +58,7 @@ func Intersection[T any](s1, s2 *Set[T]) *Set[T] {
 
 // Intersection 返回两个集合的交集
 func IntersectionFunc[T any](s1, s2 *Set[T], identifier func(T) string) *Set[T] {
-	intersectionSet := NewSetFunc[T](identifier)
+	intersectionSet := NewSetFunc(identifier)
 	s1.rwMux.RLock()
 	s2.rwMux.RLock()
 	defer s1.rwMux.RUnlock()
@@ -74,7 +74,7 @@ func IntersectionFunc[T any](s1, s2 *Set[T], identifier func(T) string) *Set[T] 
 
 // Difference 返回两个集合的差集
 func Difference[T any](s1, s2 *Set[T]) *Set[T] {
-	differenceSet := NewSetFunc[T](s1.identifier)
+	differenceSet := NewSetFunc(s1.identifier)
 	s1.rwMux.RLock()
 	s2.rwMux.RLock()
 	defer s1.rwMux.RUnlock()
@@ -90,7 +90,7 @@ func Difference[T any](s1, s2 *Set[T]) *Set[T] {
 
 // Difference 返回两个集合的差集
 func DifferenceFunc[T any](s1, s2 *Set[T], identifier func(T) string) *Set[T] {
-	differenceSet := NewSetFunc[T](s1.identifier)
+	differenceSet := NewSetFunc(s1.identifier)
 	s1.rwMux.RLock()
 	s2.rwMux.RLock()
 	defer s1.rwMux.RUnlock()
