@@ -52,6 +52,7 @@ func (s *Set[T]) Values() (values []T) {
 	s.rwMux.RLock()
 	defer s.rwMux.RUnlock()
 	values = []T{}
+
 	for _, v := range s.item {
 		values = append(values, v)
 	}
@@ -144,4 +145,8 @@ func (s *Set[T]) Equal(other *Set[T]) bool {
 		}
 	}
 	return true
+}
+
+func (s *Set[T]) String() string {
+	return fmt.Sprint(s.Values())
 }
