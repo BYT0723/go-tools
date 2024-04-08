@@ -20,6 +20,7 @@ func CircularLove() BinaryFunction {
 	}
 }
 
+// 玫瑰曲线
 func RoseLine(leaf, scale float64) BinaryFunction {
 	return func(x, y float64) bool {
 		var (
