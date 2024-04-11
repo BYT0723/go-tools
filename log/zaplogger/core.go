@@ -1,9 +1,10 @@
-package log
+package zaplogger
 
 import (
 	"os"
 	"time"
 
+	"github.com/BYT0723/go-tools/log/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -20,24 +21,19 @@ func newConsoleCore(level zap.AtomicLevel) zapcore.Core {
 	)
 }
 
-func newCore(level zap.AtomicLevel, onlyLevel bool, name string, cfg *LoggerConf) zapcore.Core {
+func newCore(cfg *logger.LoggerConf, filter zap.LevelEnablerFunc, filename string) zapcore.Core {
 	productionCfg := zap.NewProductionEncoderConfig()
 	productionCfg.TimeKey = "timestamp"
 	productionCfg.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339Nano)
 
-	var levelEnabler zapcore.LevelEnabler = level
-	if onlyLevel {
-		levelEnabler = zap.LevelEnablerFunc(func(l zapcore.Level) bool { return l == level.Level() })
-	}
-
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(productionCfg),
 		zapcore.AddSync(&lumberjack.Logger{
-			Filename:   name,
+			Filename:   filename,
 			MaxSize:    cfg.MaxSize,
 			MaxBackups: cfg.MaxBackups,
 			MaxAge:     cfg.MaxAge,
 		}),
-		levelEnabler,
+		filter,
 	)
 }
