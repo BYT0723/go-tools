@@ -2,19 +2,27 @@ package log
 
 import (
 	"github.com/BYT0723/go-tools/log/logger"
+	"github.com/BYT0723/go-tools/log/zaplogger"
 	"github.com/BYT0723/go-tools/log/zerologger"
 	"go.uber.org/zap"
 )
 
 var defaultLogger logger.Logger
 
-func Init(opts ...logger.Option) error {
-	zl, err := zerologger.NewInstance(opts...)
-	if err != nil {
-		return err
+func Init(opts ...InitOption) logger.LoggerInitFunc {
+	cfg := &InitConf{}
+
+	for _, opt := range opts {
+		opt(cfg)
 	}
-	defaultLogger = zl
-	return nil
+	switch cfg.Type {
+	case ZEROLOG:
+		return zerologger.NewInstance
+	case ZAP:
+		return zaplogger.NewInstance
+	default:
+		return nil
+	}
 }
 
 func With(kvs ...*logger.Field) logger.Logger {

@@ -1,5 +1,7 @@
 package logger
 
+type LoggerInitFunc func(opts ...Option) (Logger, error)
+
 type LoggerConf struct {
 	Dir        string
 	Name       string

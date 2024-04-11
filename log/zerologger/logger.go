@@ -14,18 +14,17 @@ import (
 )
 
 type zeroLogger struct {
-	logger *zerolog.Logger
-	cfg    *logger.LoggerConf
+	logger zerolog.Logger
 }
 
-func NewInstance(opts ...logger.Option) (ins *zeroLogger, err error) {
-	ins = &zeroLogger{cfg: logger.DefaultLoggerConf()}
+func NewInstance(opts ...logger.Option) (ins logger.Logger, err error) {
+	cfg := logger.DefaultLoggerConf()
 
 	for _, opt := range opts {
-		opt(ins.cfg)
+		opt(cfg)
 	}
 
-	level, err := zerolog.ParseLevel(ins.cfg.Level)
+	level, err := zerolog.ParseLevel(cfg.Level)
 	if err != nil {
 		return nil, err
 	}
@@ -35,9 +34,9 @@ func NewInstance(opts ...logger.Option) (ins *zeroLogger, err error) {
 
 	var writers []io.Writer
 
-	if ins.cfg.AllIn {
+	if cfg.AllIn {
 		writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
-			Filename:   path.Join(ins.cfg.Dir, fmt.Sprintf("%s.%s", ins.cfg.Name, ins.cfg.Ext)),
+			Filename:   path.Join(cfg.Dir, fmt.Sprintf("%s.%s", cfg.Name, cfg.Ext)),
 			MaxSize:    100,
 			MaxBackups: 5,
 			MaxAge:     7,
@@ -46,7 +45,7 @@ func NewInstance(opts ...logger.Option) (ins *zeroLogger, err error) {
 		for i := level; i < zerolog.Disabled; i++ {
 			targetLevel := i
 			writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
-				Filename:   path.Join(ins.cfg.Dir, fmt.Sprintf("%s-%s.%s", ins.cfg.Name, targetLevel, ins.cfg.Ext)),
+				Filename:   path.Join(cfg.Dir, fmt.Sprintf("%s-%s.%s", cfg.Name, targetLevel, cfg.Ext)),
 				MaxSize:    100,
 				MaxBackups: 5,
 				MaxAge:     7,
@@ -54,7 +53,7 @@ func NewInstance(opts ...logger.Option) (ins *zeroLogger, err error) {
 		}
 	}
 
-	if ins.cfg.Console {
+	if cfg.Console {
 		writers = append(writers, zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
 			w.TimeFormat = zerolog.TimeFieldFormat
 			w.FormatLevel = func(i interface{}) string {
@@ -63,8 +62,9 @@ func NewInstance(opts ...logger.Option) (ins *zeroLogger, err error) {
 		}))
 	}
 
-	l := zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Caller().Logger()
-	ins.logger = &l
+	ins = &zeroLogger{
+		logger: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Caller().Logger(),
+	}
 
 	return
 }
@@ -75,8 +75,7 @@ func (l *zeroLogger) With(kvs ...*logger.Field) logger.Logger {
 	for _, v := range kvs {
 		ctx = ctx.Any(v.Key, v.Value)
 	}
-	nlog := ctx.Logger()
-	copy.logger = &nlog
+	copy.logger = ctx.Logger()
 	return copy
 }
 
@@ -150,7 +149,5 @@ func (l *zeroLogger) Sync() error {
 
 func (l *zeroLogger) Clone() *zeroLogger {
 	copy := *l
-	cpLogger := *copy.logger
-	copy.logger = &cpLogger
 	return &copy
 }
