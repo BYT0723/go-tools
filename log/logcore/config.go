@@ -1,6 +1,13 @@
-package logger
+package logcore
 
-type LoggerInitFunc func(opts ...Option) (Logger, error)
+type (
+	LoggerType uint8
+)
+
+const (
+	ZEROLOG = iota
+	ZAP
+)
 
 type LoggerConf struct {
 	Dir        string

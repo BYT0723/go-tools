@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BYT0723/go-tools/log/logger"
+	"github.com/BYT0723/go-tools/log/logcore"
 	"github.com/rs/zerolog"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -17,13 +17,7 @@ type zeroLogger struct {
 	logger zerolog.Logger
 }
 
-func NewInstance(opts ...logger.Option) (ins logger.Logger, err error) {
-	cfg := logger.DefaultLoggerConf()
-
-	for _, opt := range opts {
-		opt(cfg)
-	}
-
+func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	level, err := zerolog.ParseLevel(cfg.Level)
 	if err != nil {
 		return nil, err
@@ -57,7 +51,10 @@ func NewInstance(opts ...logger.Option) (ins logger.Logger, err error) {
 		writers = append(writers, zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
 			w.TimeFormat = zerolog.TimeFieldFormat
 			w.FormatLevel = func(i interface{}) string {
-				return strings.ToUpper(fmt.Sprint(i) + "\t")
+				return strings.ToUpper(fmt.Sprint(i, "\t"))
+			}
+			w.FormatMessage = func(i interface{}) string {
+				return fmt.Sprint(i, "\t")
 			}
 		}))
 	}
@@ -69,7 +66,7 @@ func NewInstance(opts ...logger.Option) (ins logger.Logger, err error) {
 	return
 }
 
-func (l *zeroLogger) With(kvs ...*logger.Field) logger.Logger {
+func (l *zeroLogger) With(kvs ...*logcore.Field) logcore.Logger {
 	copy := l.Clone()
 	ctx := copy.logger.With()
 	for _, v := range kvs {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/BYT0723/go-tools/log/logger"
+	"github.com/BYT0723/go-tools/log/logcore"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -13,13 +13,7 @@ type zapLogger struct {
 	logger *zap.Logger
 }
 
-func NewInstance(opts ...logger.Option) (ins logger.Logger, err error) {
-	cfg := logger.DefaultLoggerConf()
-
-	for _, opt := range opts {
-		opt(cfg)
-	}
-
+func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 	level, err := zap.ParseAtomicLevel(cfg.Level)
 	if err != nil {
 		return nil, err
@@ -57,7 +51,7 @@ func NewInstance(opts ...logger.Option) (ins logger.Logger, err error) {
 	return
 }
 
-func (logger *zapLogger) With(kvs ...*logger.Field) logger.Logger {
+func (logger *zapLogger) With(kvs ...*logcore.Field) logcore.Logger {
 	fields := []zap.Field{}
 	for _, kv := range kvs {
 		fields = append(fields, zap.Any(kv.Key, kv.Value))

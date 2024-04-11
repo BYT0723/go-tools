@@ -1,4 +1,4 @@
-package logger
+package logcore
 
 type Field struct {
 	Key   string

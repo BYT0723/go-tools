@@ -1,31 +1,36 @@
 package log
 
 import (
-	"github.com/BYT0723/go-tools/log/logger"
+	"fmt"
+
+	"github.com/BYT0723/go-tools/log/logcore"
 	"github.com/BYT0723/go-tools/log/zaplogger"
 	"github.com/BYT0723/go-tools/log/zerologger"
 	"go.uber.org/zap"
 )
 
-var defaultLogger logger.Logger
+var defaultLogger logcore.Logger
 
-func Init(opts ...InitOption) logger.LoggerInitFunc {
-	cfg := &InitConf{}
+func Init(opts ...logcore.Option) (logcore.Logger, error) {
+	cfg := &logcore.InitConf{
+		Type:   logcore.ZEROLOG,
+		LogCfg: logcore.DefaultLoggerConf(),
+	}
 
 	for _, opt := range opts {
 		opt(cfg)
 	}
 	switch cfg.Type {
-	case ZEROLOG:
-		return zerologger.NewInstance
-	case ZAP:
-		return zaplogger.NewInstance
+	case logcore.ZEROLOG:
+		return zerologger.NewInstance(cfg.LogCfg)
+	case logcore.ZAP:
+		return zaplogger.NewInstance(cfg.LogCfg)
 	default:
-		return nil
+		return nil, fmt.Errorf("unknown logger type: %v", cfg.Type)
 	}
 }
 
-func With(kvs ...*logger.Field) logger.Logger {
+func With(kvs ...*logcore.Field) logcore.Logger {
 	return defaultLogger.With(kvs...)
 }
 
