@@ -53,6 +53,6 @@ func WithMaxAge(age int) Option {
 
 func WithConf(cfg *LoggerConf) Option {
 	return func(payload *InitConf) {
-		payload.LogCfg.Copy(cfg)
+		payload.LogCfg = cfg
 	}
 }

@@ -31,18 +31,18 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	if cfg.AllIn {
 		writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
 			Filename:   path.Join(cfg.Dir, fmt.Sprintf("%s.%s", cfg.Name, cfg.Ext)),
-			MaxSize:    100,
-			MaxBackups: 5,
-			MaxAge:     7,
+			MaxSize:    cfg.MaxSize,
+			MaxBackups: cfg.MaxBackups,
+			MaxAge:     cfg.MaxAge,
 		}), func(l zerolog.Level) bool { return l >= level }))
 	} else {
 		for i := level; i < zerolog.Disabled; i++ {
 			targetLevel := i
 			writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
 				Filename:   path.Join(cfg.Dir, fmt.Sprintf("%s-%s.%s", cfg.Name, targetLevel, cfg.Ext)),
-				MaxSize:    100,
-				MaxBackups: 5,
-				MaxAge:     7,
+				MaxSize:    cfg.MaxSize,
+				MaxBackups: cfg.MaxBackups,
+				MaxAge:     cfg.MaxAge,
 			}), func(l zerolog.Level) bool { return l == targetLevel }))
 		}
 	}

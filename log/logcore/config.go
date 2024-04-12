@@ -35,13 +35,7 @@ func DefaultLoggerConf() *LoggerConf {
 	}
 }
 
-func (cfg *LoggerConf) Copy(src *LoggerConf) {
-	cfg.Dir = src.Dir
-	cfg.Name = src.Name
-	cfg.Ext = src.Ext
-	cfg.Level = src.Level
-	cfg.AllIn = src.AllIn
-	cfg.MaxBackups = src.MaxBackups
-	cfg.MaxSize = src.MaxSize
-	cfg.MaxAge = src.MaxAge
+func (cfg *LoggerConf) Clone() *LoggerConf {
+	res := *cfg
+	return &res
 }
