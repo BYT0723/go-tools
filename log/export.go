@@ -11,11 +11,17 @@ import (
 
 var defaultLogger logcore.Logger
 
-func Init(opts ...logcore.Option) (logcore.Logger, error) {
-	cfg := &logcore.InitConf{
-		Type:   logcore.ZEROLOG,
-		LogCfg: logcore.DefaultLoggerConf(),
+func Init(opts ...logcore.Option) error {
+	logger, err := NewLogger(opts...)
+	if err != nil {
+		return err
 	}
+	defaultLogger = logger
+	return nil
+}
+
+func NewLogger(opts ...logcore.Option) (logcore.Logger, error) {
+	cfg := &logcore.InitConf{LogCfg: logcore.DefaultLoggerConf()}
 
 	for _, opt := range opts {
 		opt(cfg)

@@ -5,8 +5,9 @@ type (
 )
 
 const (
-	ZEROLOG = iota
-	ZAP
+	ZAP = iota // default
+	ZEROLOG
+	INVALID
 )
 
 type LoggerConf struct {

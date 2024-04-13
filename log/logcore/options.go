@@ -9,6 +9,9 @@ type InitConf struct {
 
 func WithLoggerType(_t LoggerType) Option {
 	return func(cfg *InitConf) {
+		if _t == 0 || _t >= INVALID {
+			_t = ZAP
+		}
 		cfg.Type = _t
 	}
 }

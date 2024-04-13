@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkZap(b *testing.B) {
-	l, err := Init(logcore.WithLoggerType(
+	l, err := NewLogger(logcore.WithLoggerType(
 		logcore.ZAP),
 		logcore.WithConf(&logcore.LoggerConf{
 			Dir:        "logs",
@@ -30,7 +30,7 @@ func BenchmarkZap(b *testing.B) {
 }
 
 func BenchmarkZeroLog(b *testing.B) {
-	l, err := Init(
+	l, err := NewLogger(
 		logcore.WithLoggerType(logcore.ZEROLOG),
 		logcore.WithConf(&logcore.LoggerConf{
 			Dir:        "logs",
