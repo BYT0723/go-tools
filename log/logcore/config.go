@@ -11,15 +11,34 @@ const (
 )
 
 type LoggerConf struct {
-	Dir        string
-	Name       string
-	Ext        string
-	Level      string
-	AllIn      bool
-	MaxBackups int // uint: MB
-	MaxSize    int
-	MaxAge     int // uint: DAY
-	Console    bool
+	// log folder.
+	// default: logs
+	Dir string
+	// log file name.
+	// default: app
+	Name string
+	// log file ext.
+	// default: log
+	Ext string
+	// The lowest level of log.
+	// default: debug
+	Level string
+	// Whether different files will be stored according to the log level.
+	// if true, all level logs will be stored in a single file. Otherwise store hierarchically.
+	// default: false
+	AllIn bool
+	// The maximum number of backups.
+	// default: 20
+	MaxBackups int
+	// The maximum size of a single file, in MB.
+	// default: 20
+	MaxSize int
+	// The maximum storage duration of the file, in days.
+	// default: 7
+	MaxAge int
+	// Whether the console outputs.
+	// default: true
+	Console bool
 }
 
 func DefaultLoggerConf() *LoggerConf {
@@ -29,8 +48,8 @@ func DefaultLoggerConf() *LoggerConf {
 		Ext:        "log",
 		Level:      "debug",
 		AllIn:      false,
-		MaxBackups: 3,
-		MaxSize:    10,
+		MaxBackups: 20,
+		MaxSize:    20,
 		MaxAge:     7,
 		Console:    true,
 	}
