@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,6 +26,19 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	zerolog.TimestampFieldName = "timestamp"
+	zerolog.MessageFieldName = "msg"
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+		defaultPath := file + ":" + strconv.Itoa(line)
+		idx := strings.LastIndexByte(file, '/')
+		if idx == -1 {
+			return defaultPath
+		}
+		idx = strings.LastIndexByte(file[:idx], '/')
+		if idx == -1 {
+			return defaultPath
+		}
+		return file[idx+1:] + ":" + strconv.Itoa(line)
+	}
 
 	var writers []io.Writer
 
@@ -60,7 +74,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	}
 
 	ins = &zeroLogger{
-		logger: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Caller().Logger(),
+		logger: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(3).Logger(),
 	}
 
 	return
