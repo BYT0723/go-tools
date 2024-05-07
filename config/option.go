@@ -38,7 +38,7 @@ func WithRemoteConfig(endpoint, path string) Option {
 		if err := c.viper.AddRemoteProvider("etcd", endpoint, path); err != nil {
 			panic(err)
 		}
-		c.remote = true
+		c.initStatus |= remote
 	}
 }
 
@@ -59,5 +59,11 @@ func WithConfigTag(name string) Option {
 func WithCustomDeocodeOpt(opts ...viper.DecoderConfigOption) Option {
 	return func(c *_config) {
 		c.decodeOpts = append(c.decodeOpts, opts...)
+	}
+}
+
+func WithDefaultUnMarshal(unmarshaler Unmarshaler) Option {
+	return func(c *_config) {
+		c.unmarshaler = unmarshaler
 	}
 }

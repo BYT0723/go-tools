@@ -12,20 +12,29 @@ var (
 	once   sync.Once
 )
 
+type (
+	initStatus  uint8
+	Unmarshaler func(*viper.Viper) error
+)
+
+const (
+	remote initStatus = 1 << iota
+)
+
 type _config struct {
 	ctx            context.Context
 	viper          *viper.Viper
-	remote         bool
 	decodeOpts     []viper.DecoderConfigOption
+	initStatus     initStatus
 	onConfigChange ChangeHandler
+	unmarshaler    Unmarshaler
 }
 
 func Init(opts ...Option) {
 	once.Do(func() {
 		config = &_config{
-			ctx:    context.Background(),
-			viper:  viper.New(),
-			remote: false,
+			ctx:   context.Background(),
+			viper: viper.New(),
 		}
 
 		for _, opt := range opts {
@@ -33,38 +42,33 @@ func Init(opts ...Option) {
 		}
 
 		var err error
-		if config.remote {
-			err = initRemote()
+		if config.initStatus&remote == remote {
+			if err = config.viper.ReadRemoteConfig(); err != nil {
+				panic(err)
+			}
+
+			if config.onConfigChange != nil {
+				if err = config.viper.WatchRemoteConfig(); err != nil {
+					panic(err)
+				}
+				config.viper.OnConfigChange(config.onConfigChange)
+			}
 		} else {
-			err = initLocation()
+			if err = config.viper.ReadInConfig(); err != nil {
+				panic(err)
+			}
+			if config.onConfigChange != nil {
+				config.viper.WatchConfig()
+				config.viper.OnConfigChange(config.onConfigChange)
+			}
 		}
 
-		if err != nil {
-			panic(err)
-		}
-
-		if config.onConfigChange != nil {
-			config.viper.OnConfigChange(config.onConfigChange)
+		if config.unmarshaler != nil {
+			if err := config.unmarshaler(config.viper); err != nil {
+				panic(err)
+			}
 		}
 	})
-}
-
-func initLocation() (err error) {
-	err = config.viper.ReadInConfig()
-	if err != nil {
-		return
-	}
-	config.viper.WatchConfig()
-	return
-}
-
-func initRemote() (err error) {
-	err = config.viper.ReadRemoteConfig()
-	if err != nil {
-		return
-	}
-	err = config.viper.WatchRemoteConfig()
-	return
 }
 
 func Unmarshal(rawVal any) error {
