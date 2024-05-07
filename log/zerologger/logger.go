@@ -63,7 +63,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 
 	if cfg.Console {
 		writers = append(writers, zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
-			w.TimeFormat = zerolog.TimeFieldFormat
+			w.TimeFormat = zerolog.TimeFieldFormat + "\t"
 			w.FormatLevel = func(i interface{}) string {
 				return strings.ToUpper(fmt.Sprint(i, "\t"))
 			}
@@ -74,7 +74,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	}
 
 	ins = &zeroLogger{
-		logger: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(3).Logger(),
+		logger: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger(),
 	}
 
 	return
@@ -152,6 +152,11 @@ func (l *zeroLogger) Fatalf(format string, args ...any) {
 
 func (l *zeroLogger) ZapLogger() (*zap.Logger, bool) {
 	return nil, false
+}
+
+func (l *zeroLogger) ZeroLogger() (*zerolog.Logger, bool) {
+	l2 := l.logger.With().CallerWithSkipFrameCount(2).Logger()
+	return &l2, true
 }
 
 func (l *zeroLogger) Sync() error {

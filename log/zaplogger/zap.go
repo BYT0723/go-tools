@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/BYT0723/go-tools/log/logcore"
+	"github.com/rs/zerolog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -45,7 +46,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 	core := zapcore.NewTee(cores...)
 
 	ins = &zapLogger{
-		logger: zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)),
+		logger: zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2)),
 	}
 
 	return
@@ -111,11 +112,14 @@ func (logger *zapLogger) Fatalf(format string, args ...any) {
 }
 
 func (logger *zapLogger) ZapLogger() (*zap.Logger, bool) {
-	var res bool
 	if logger.logger != nil {
-		res = true
+		return logger.logger.WithOptions(zap.AddCallerSkip(-2)), true
 	}
-	return logger.logger, res
+	return nil, false
+}
+
+func (logger *zapLogger) ZeroLogger() (*zerolog.Logger, bool) {
+	return nil, false
 }
 
 func (logger *zapLogger) Sync() error {

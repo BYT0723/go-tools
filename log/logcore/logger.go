@@ -1,6 +1,7 @@
 package logcore
 
 import (
+	"github.com/rs/zerolog"
 	"go.uber.org/zap"
 )
 
@@ -19,5 +20,6 @@ type Logger interface {
 	Fatal(args ...any)
 	Fatalf(format string, args ...any)
 	ZapLogger() (*zap.Logger, bool)
+	ZeroLogger() (*zerolog.Logger, bool)
 	Sync() error
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/BYT0723/go-tools/log/logcore"
 	"github.com/BYT0723/go-tools/log/zaplogger"
 	"github.com/BYT0723/go-tools/log/zerologger"
+	"github.com/rs/zerolog"
 	"go.uber.org/zap"
 )
 
@@ -90,6 +91,10 @@ func Fatalf(format string, args ...any) {
 
 func ZapLogger() (*zap.Logger, bool) {
 	return defaultLogger.ZapLogger()
+}
+
+func Zerologger() (*zerolog.Logger, bool) {
+	return defaultLogger.ZeroLogger()
 }
 
 func Sync() error {
