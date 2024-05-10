@@ -62,7 +62,15 @@ func WithCustomDeocodeOpt(opts ...viper.DecoderConfigOption) Option {
 	}
 }
 
-func WithDefaultUnMarshal(unmarshaler Unmarshaler) Option {
+func WithDefaultUnMarshal(payload any) Option {
+	return func(c *_config) {
+		c.unmarshaler = func(v *viper.Viper) error {
+			return v.Unmarshal(payload)
+		}
+	}
+}
+
+func WithCustomUnMarshal(unmarshaler Unmarshaler) Option {
 	return func(c *_config) {
 		c.unmarshaler = unmarshaler
 	}

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -22,7 +21,6 @@ const (
 )
 
 type _config struct {
-	ctx            context.Context
 	viper          *viper.Viper
 	decodeOpts     []viper.DecoderConfigOption
 	initStatus     initStatus
@@ -33,13 +31,15 @@ type _config struct {
 func Init(opts ...Option) {
 	once.Do(func() {
 		config = &_config{
-			ctx:   context.Background(),
 			viper: viper.New(),
 		}
 
 		for _, opt := range opts {
 			opt(config)
 		}
+
+		defer func() {
+		}()
 
 		var err error
 		if config.initStatus&remote == remote {
