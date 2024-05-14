@@ -4,6 +4,7 @@ import (
 	"io/fs"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 type Option func(*LangSet)
@@ -33,6 +34,7 @@ func WithMsgFilesFs(fs fs.FS, paths ...string) Option {
 	}
 }
 
+// set delimiters in template
 func WithTemplateDelim(left, right string) Option {
 	return func(ls *LangSet) {
 		ls.tempParser.LeftDelim = left
@@ -43,5 +45,38 @@ func WithTemplateDelim(left, right string) Option {
 func WithTemplateFunc(name string, f any) Option {
 	return func(ls *LangSet) {
 		ls.tempParser.Funcs[name] = f
+	}
+}
+
+type Message struct {
+	Language string
+	ID       string
+	Zero     string
+	One      string
+	Two      string
+	Few      string
+	Many     string
+	Other    string
+}
+
+func WithMessages(ms ...*Message) Option {
+	return func(ls *LangSet) {
+		for _, m := range ms {
+			lang, err := language.Parse(m.Language)
+			if err != nil {
+				panic(err)
+			}
+			if err := ls.b.AddMessages(lang, &i18n.Message{
+				ID:    m.ID,
+				Zero:  m.Zero,
+				One:   m.One,
+				Two:   m.Two,
+				Few:   m.Few,
+				Many:  m.Many,
+				Other: m.Other,
+			}); err != nil {
+				panic(err)
+			}
+		}
 	}
 }
