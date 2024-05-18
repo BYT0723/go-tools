@@ -62,11 +62,20 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 				t     = reflect.TypeOf(payload)
 				v     = reflect.ValueOf(payload)
 			)
-			if t.Kind() != reflect.Map || t.Kind() != reflect.Struct {
+			switch t.Kind() {
+			case reflect.Struct:
+				for i := 0; i < t.NumField(); i++ {
+					query.Add(t.Field(i).Name, fmt.Sprint(v.Field(i).Interface()))
+				}
+			case reflect.Map:
+				if t.Key().Kind() != reflect.String {
+					return 0, nil, errors.New("GET Params Map key type must be string")
+				}
+				for _, k := range v.MapKeys() {
+					query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(v.MapIndex(k)))
+				}
+			default:
 				return 0, nil, errors.New("GET Params need [Map|Struct]")
-			}
-			for i := 0; i < t.NumField(); i++ {
-				query.Add(t.Field(i).Name, fmt.Sprint(v.Field(i).Interface()))
 			}
 			u.RawQuery = query.Encode()
 			rawUrl = u.String()
