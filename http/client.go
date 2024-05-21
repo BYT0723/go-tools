@@ -65,14 +65,33 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 			switch t.Kind() {
 			case reflect.Struct:
 				for i := 0; i < t.NumField(); i++ {
-					query.Add(t.Field(i).Name, fmt.Sprint(v.Field(i).Interface()))
+					itemValue := v.Field(i)
+					itemType := t.Field(i)
+
+					switch itemValue.Kind() {
+					case reflect.Array:
+						for j := 0; j < itemValue.Len(); j++ {
+							query.Add(itemType.Name, fmt.Sprint(itemValue.Index(j).Interface()))
+						}
+					default:
+						query.Add(itemType.Name, fmt.Sprint(itemValue.Interface()))
+					}
 				}
 			case reflect.Map:
 				if t.Key().Kind() != reflect.String {
 					return 0, nil, errors.New("GET Params Map key type must be string")
 				}
 				for _, k := range v.MapKeys() {
-					query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(v.MapIndex(k)))
+					value := v.MapIndex(k)
+					switch value.Kind() {
+					case reflect.Array:
+						for j := 0; j < value.Len(); j++ {
+							query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(value.Index(j).Interface()))
+						}
+					default:
+						query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(value))
+					}
+
 				}
 			default:
 				return 0, nil, errors.New("GET Params need [Map|Struct]")
