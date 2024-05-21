@@ -105,8 +105,6 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 			}
 			u.RawQuery = query.Encode()
 			rawUrl = u.String()
-
-			fmt.Printf("rawUrl: %v\n", rawUrl)
 		} else {
 			bs, err := c.encoder(ctx, payload)
 			if err != nil {
