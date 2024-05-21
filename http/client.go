@@ -65,16 +65,19 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 			switch t.Kind() {
 			case reflect.Struct:
 				for i := 0; i < t.NumField(); i++ {
-					itemValue := v.Field(i)
-					itemType := t.Field(i)
+					value := v.Field(i)
+					if value.Kind() == reflect.Interface {
+						value = value.Elem()
+					}
+					fieldName := t.Field(i).Name
 
-					switch itemValue.Kind() {
-					case reflect.Array:
-						for j := 0; j < itemValue.Len(); j++ {
-							query.Add(itemType.Name, fmt.Sprint(itemValue.Index(j).Interface()))
+					switch value.Kind() {
+					case reflect.Slice, reflect.Array:
+						for j := 0; j < value.Len(); j++ {
+							query.Add(fieldName, fmt.Sprint(value.Index(j).Interface()))
 						}
 					default:
-						query.Add(itemType.Name, fmt.Sprint(itemValue.Interface()))
+						query.Add(fieldName, fmt.Sprint(value.Interface()))
 					}
 				}
 			case reflect.Map:
@@ -83,8 +86,12 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 				}
 				for _, k := range v.MapKeys() {
 					value := v.MapIndex(k)
+					if value.Kind() == reflect.Interface {
+						value = value.Elem()
+					}
+
 					switch value.Kind() {
-					case reflect.Array:
+					case reflect.Slice, reflect.Array:
 						for j := 0; j < value.Len(); j++ {
 							query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(value.Index(j).Interface()))
 						}
@@ -98,6 +105,8 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 			}
 			u.RawQuery = query.Encode()
 			rawUrl = u.String()
+
+			fmt.Printf("rawUrl: %v\n", rawUrl)
 		} else {
 			bs, err := c.encoder(ctx, payload)
 			if err != nil {
