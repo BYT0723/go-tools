@@ -9,13 +9,17 @@ import (
 
 type Encoder func(context.Context, any) ([]byte, error)
 
-func JsonEncoder(ctx context.Context, payload any) ([]byte, error) {
-	return json.Marshal(payload)
+func JsonEncoder() Encoder {
+	return func(ctx context.Context, payload any) ([]byte, error) {
+		return json.Marshal(payload)
+	}
 }
 
-func GobEncoder(ctx context.Context, payload any) ([]byte, error) {
-	var buf bytes.Buffer
-	defer buf.Reset()
-	err := gob.NewEncoder(&buf).Encode(payload)
-	return buf.Bytes(), err
+func GobEncoder() Encoder {
+	return func(ctx context.Context, payload any) ([]byte, error) {
+		var buf bytes.Buffer
+		defer buf.Reset()
+		err := gob.NewEncoder(&buf).Encode(payload)
+		return buf.Bytes(), err
+	}
 }
