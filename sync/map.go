@@ -7,6 +7,16 @@ type SyncMap[T1, T2 any] struct {
 	entry sync.Map
 }
 
+func NewSyncMap[T1 comparable, T2 any](kvs map[T1]T2) *SyncMap[T1, T2] {
+	res := new(SyncMap[T1, T2])
+
+	for k, v := range kvs {
+		res.Store(k, v)
+	}
+
+	return res
+}
+
 func (m *SyncMap[T1, T2]) Store(key T1, value T2) {
 	m.entry.Store(key, value)
 }
