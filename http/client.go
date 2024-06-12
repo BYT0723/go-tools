@@ -19,8 +19,8 @@ type Client struct {
 
 func NewClient(opts ...Option) *Client {
 	c := &Client{
-		encoder:     JsonEncoder,
-		decoder:     JsonDecoder,
+		encoder:     JsonEncoder(),
+		decoder:     JsonDecoder(),
 		innerClient: &http.Client{},
 	}
 	for _, opt := range opts {
