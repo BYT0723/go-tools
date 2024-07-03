@@ -3,7 +3,7 @@ package hashset
 import (
 	"fmt"
 
-	"github.com/BYT0723/go-tools/set"
+	"github.com/BYT0723/go-tools/datastruct/set"
 )
 
 type HashSet[T comparable] map[T]struct{}
