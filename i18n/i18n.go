@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	ls   *LangSet
+	ls   *langset
 	once sync.Once
 )
 
 func Init(opts ...Option) {
 	once.Do(func() {
-		ls = &LangSet{
+		ls = &langset{
 			b:          i18n.NewBundle(language.English),
 			tempParser: &template.TextParser{Funcs: map[string]any{}},
 		}
@@ -26,6 +26,6 @@ func Init(opts ...Option) {
 	})
 }
 
-func GetLocalizer(lang string) *Localizer {
+func GetLocalizer(lang string) *localizer {
 	return ls.GetLocalizer(lang)
 }
