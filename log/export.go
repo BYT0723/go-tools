@@ -10,7 +10,12 @@ import (
 	"go.uber.org/zap"
 )
 
-var defaultLogger logcore.Logger
+type (
+	Field  = logcore.Field
+	Logger = logcore.Logger
+)
+
+var defaultLogger Logger
 
 func Init(opts ...logcore.Option) error {
 	logger, err := NewLogger(opts...)
