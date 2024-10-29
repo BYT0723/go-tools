@@ -26,6 +26,6 @@ func Init(opts ...Option) {
 	})
 }
 
-func GetLocalizer(lang string) *localizer {
+func GetLocalizer(lang string) *Localizer {
 	return ls.GetLocalizer(lang)
 }

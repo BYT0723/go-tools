@@ -5,16 +5,16 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n/template"
 )
 
-type localizer struct {
+type Localizer struct {
 	l          *i18n.Localizer
 	tempParser *template.TextParser
 }
 
-func (l *localizer) Msg(id string) (string, error) {
+func (l *Localizer) Msg(id string) (string, error) {
 	return l.l.Localize(&i18n.LocalizeConfig{MessageID: id})
 }
 
-func (l *localizer) MsgWithParam(id string, param any) (string, error) {
+func (l *Localizer) MsgWithParam(id string, param any) (string, error) {
 	return l.l.Localize(&i18n.LocalizeConfig{
 		MessageID:      id,
 		TemplateData:   param,
@@ -87,7 +87,7 @@ func (l *localizer) MsgWithParam(id string, param any) (string, error) {
 // -------------------------------------------
 // Plura必须为int或float类型，否则会出现panic
 // Plura为句子中包含的数量值，i18n通过这个判断使用哪种类型的句式
-func (l *localizer) MsgWithPluraParam(id string, param, plura any) (string, error) {
+func (l *Localizer) MsgWithPluraParam(id string, param, plura any) (string, error) {
 	return l.l.Localize(&i18n.LocalizeConfig{
 		MessageID:      id,
 		TemplateData:   param,

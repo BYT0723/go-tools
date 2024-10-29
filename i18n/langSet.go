@@ -10,8 +10,8 @@ type langset struct {
 	tempParser *template.TextParser
 }
 
-func (l *langset) GetLocalizer(lang string) *localizer {
-	return &localizer{
+func (l *langset) GetLocalizer(lang string) *Localizer {
+	return &Localizer{
 		l:          i18n.NewLocalizer(l.b, lang),
 		tempParser: l.tempParser,
 	}
