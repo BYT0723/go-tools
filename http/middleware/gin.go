@@ -1,10 +1,12 @@
-package ginmd
+package middleware
 
 import (
-	uctx "github.com/BYT0723/go-tools/ctx"
 	"github.com/BYT0723/go-tools/log"
+	"github.com/BYT0723/go-tools/uctx"
 	"github.com/gin-gonic/gin"
 )
+
+var _ gin.HandlerFunc = WithTraceLogger(nil)
 
 func WithTraceLogger(logger log.Logger, fields ...*log.Field) func(*gin.Context) {
 	logger = logger.With(fields...)

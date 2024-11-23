@@ -3,7 +3,7 @@ package graph
 import (
 	"math"
 
-	"github.com/BYT0723/go-tools/graph/functions"
+	"github.com/BYT0723/go-tools/funny/graph/functions"
 	"github.com/BYT0723/go-tools/system"
 )
 
