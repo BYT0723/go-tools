@@ -1,12 +1,15 @@
 package set
 
+import "fmt"
+
 type Set[T comparable] interface {
+	fmt.Stringer
 	// 集合长度
 	Len() int
 	// 添加元素
 	Append(...T)
 	// 移除元素
-	Remove(T) bool
+	Remove(...T) bool
 	// 判断元素是否存在
 	Contains(T) bool
 	// 集合元素的切片

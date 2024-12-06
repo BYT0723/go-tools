@@ -35,8 +35,10 @@ func (s HashSet[T]) Values() (values []T) {
 	return
 }
 
-func (s HashSet[T]) Remove(value T) bool {
-	delete(s, value)
+func (s HashSet[T]) Remove(values ...T) bool {
+	for _, v := range values {
+		delete(s, v)
+	}
 	return true
 }
 
