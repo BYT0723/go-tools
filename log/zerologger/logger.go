@@ -10,12 +10,11 @@ import (
 
 	"github.com/BYT0723/go-tools/log/logcore"
 	"github.com/rs/zerolog"
-	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type zeroLogger struct {
-	logger zerolog.Logger
+	zero zerolog.Logger
 }
 
 func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
@@ -74,96 +73,110 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	}
 
 	ins = &zeroLogger{
-		logger: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger(),
+		zero: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger(),
 	}
 
 	return
 }
 
 func (l *zeroLogger) With(kvs ...*logcore.Field) logcore.Logger {
-	copy := l.Clone()
-	ctx := copy.logger.With()
+	copy := l.clone()
+	ctx := copy.zero.With()
 	for _, v := range kvs {
 		ctx = ctx.Any(v.Key, v.Value)
 	}
-	copy.logger = ctx.Logger()
+	copy.zero = ctx.Logger()
 	return copy
 }
 
 func (l *zeroLogger) Debug(args ...any) {
-	l.logger.Debug().MsgFunc(func() string {
+	l.zero.Debug().MsgFunc(func() string {
 		return fmt.Sprint(args...)
 	})
 }
 
 func (l *zeroLogger) Debugf(format string, args ...any) {
-	l.logger.Debug().Msgf(format, args...)
+	l.zero.Debug().Msgf(format, args...)
 }
 
 func (l *zeroLogger) Info(args ...any) {
-	l.logger.Info().MsgFunc(func() string {
+	l.zero.Info().MsgFunc(func() string {
 		return fmt.Sprint(args...)
 	})
 }
 
 func (l *zeroLogger) Infof(format string, args ...any) {
-	l.logger.Info().Msgf(format, args...)
+	l.zero.Info().Msgf(format, args...)
 }
 
 func (l *zeroLogger) Warn(args ...any) {
-	l.logger.Warn().MsgFunc(func() string {
+	l.zero.Warn().MsgFunc(func() string {
 		return fmt.Sprint(args...)
 	})
 }
 
 func (l *zeroLogger) Warnf(format string, args ...any) {
-	l.logger.Warn().Msgf(format, args...)
+	l.zero.Warn().Msgf(format, args...)
 }
 
 func (l *zeroLogger) Error(args ...any) {
-	l.logger.Error().MsgFunc(func() string {
+	l.zero.Error().MsgFunc(func() string {
 		return fmt.Sprint(args...)
 	})
 }
 
 func (l *zeroLogger) Errorf(format string, args ...any) {
-	l.logger.Error().Msgf(format, args...)
+	l.zero.Error().Msgf(format, args...)
 }
 
 func (l *zeroLogger) Panic(args ...any) {
-	l.logger.Panic().MsgFunc(func() string {
+	l.zero.Panic().MsgFunc(func() string {
 		return fmt.Sprint(args...)
 	})
 }
 
 func (l *zeroLogger) Panicf(format string, args ...any) {
-	l.logger.Panic().Msgf(format, args...)
+	l.zero.Panic().Msgf(format, args...)
 }
 
 func (l *zeroLogger) Fatal(args ...any) {
-	l.logger.Fatal().MsgFunc(func() string {
+	l.zero.Fatal().MsgFunc(func() string {
 		return fmt.Sprint(args...)
 	})
 }
 
 func (l *zeroLogger) Fatalf(format string, args ...any) {
-	l.logger.Fatal().Msgf(format, args...)
+	l.zero.Fatal().Msgf(format, args...)
 }
 
-func (l *zeroLogger) ZapLogger() (*zap.Logger, bool) {
-	return nil, false
+func (l *zeroLogger) Log(level string, args ...any) {
+	lv, err := zerolog.ParseLevel(level)
+	if err != nil {
+		lv = zerolog.DebugLevel
+	}
+	l.zero.WithLevel(lv).MsgFunc(func() string {
+		return fmt.Sprint(args...)
+	})
 }
 
-func (l *zeroLogger) ZeroLogger() (*zerolog.Logger, bool) {
-	l2 := l.logger.With().CallerWithSkipFrameCount(2).Logger()
-	return &l2, true
+func (l *zeroLogger) Logf(level, format string, args ...any) {
+	lv, err := zerolog.ParseLevel(level)
+	if err != nil {
+		lv = zerolog.DebugLevel
+	}
+	l.zero.WithLevel(lv).Msgf(format, args...)
 }
 
 func (l *zeroLogger) Sync() error {
 	return nil
 }
 
-func (l *zeroLogger) Clone() *zeroLogger {
+func (l *zeroLogger) Logger() logcore.Logger {
+	l.zero = l.zero.With().CallerWithSkipFrameCount(3).Logger()
+	return l
+}
+
+func (l *zeroLogger) clone() *zeroLogger {
 	copy := *l
 	return &copy
 }

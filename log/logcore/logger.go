@@ -1,10 +1,5 @@
 package logcore
 
-import (
-	"github.com/rs/zerolog"
-	"go.uber.org/zap"
-)
-
 type Logger interface {
 	With(kvs ...*Field) Logger
 	Debug(args ...any)
@@ -19,7 +14,8 @@ type Logger interface {
 	Panicf(format string, args ...any)
 	Fatal(args ...any)
 	Fatalf(format string, args ...any)
-	ZapLogger() (*zap.Logger, bool)
-	ZeroLogger() (*zerolog.Logger, bool)
+	Log(level string, args ...any)
+	Logf(level string, format string, args ...any)
 	Sync() error
+	Logger() Logger
 }

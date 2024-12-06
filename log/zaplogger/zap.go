@@ -5,13 +5,12 @@ import (
 	"path/filepath"
 
 	"github.com/BYT0723/go-tools/log/logcore"
-	"github.com/rs/zerolog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 type zapLogger struct {
-	logger *zap.Logger
+	zap *zap.Logger
 }
 
 func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
@@ -46,7 +45,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 	core := zapcore.NewTee(cores...)
 
 	ins = &zapLogger{
-		logger: zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2)),
+		zap: zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2)),
 	}
 
 	return
@@ -58,77 +57,95 @@ func (logger *zapLogger) With(kvs ...*logcore.Field) logcore.Logger {
 		fields = append(fields, zap.Any(kv.Key, kv.Value))
 	}
 
-	res := logger.Clone()
-	res.logger = res.logger.With(fields...)
+	res := logger.clone()
+	res.zap = res.zap.With(fields...)
 	return res
 }
 
-func (logger *zapLogger) Debug(args ...any) {
-	logger.logger.Sugar().Debug(args...)
+func (l *zapLogger) Debug(args ...any) {
+	l.zap.Sugar().Debug(args...)
 }
 
-func (logger *zapLogger) Debugf(format string, args ...any) {
-	logger.logger.Sugar().Debugf(format, args...)
+func (l *zapLogger) Debugf(format string, args ...any) {
+	l.zap.Sugar().Debugf(format, args...)
 }
 
-func (logger *zapLogger) Info(args ...any) {
-	logger.logger.Sugar().Info(args...)
+func (l *zapLogger) Info(args ...any) {
+	l.zap.Sugar().Info(args...)
 }
 
-func (logger *zapLogger) Infof(format string, args ...any) {
-	logger.logger.Sugar().Infof(format, args...)
+func (l *zapLogger) Infof(format string, args ...any) {
+	l.zap.Sugar().Infof(format, args...)
 }
 
-func (logger *zapLogger) Warn(args ...any) {
-	logger.logger.Sugar().Warn(args...)
+func (l *zapLogger) Warn(args ...any) {
+	l.zap.Sugar().Warn(args...)
 }
 
-func (logger *zapLogger) Warnf(format string, args ...any) {
-	logger.logger.Sugar().Warnf(format, args)
+func (l *zapLogger) Warnf(format string, args ...any) {
+	l.zap.Sugar().Warnf(format, args)
 }
 
-func (logger *zapLogger) Error(args ...any) {
-	logger.logger.Sugar().Error(args...)
+func (l *zapLogger) Error(args ...any) {
+	l.zap.Sugar().Error(args...)
 }
 
-func (logger *zapLogger) Errorf(format string, args ...any) {
-	logger.logger.Sugar().Errorf(format, args...)
+func (l *zapLogger) Errorf(format string, args ...any) {
+	l.zap.Sugar().Errorf(format, args...)
 }
 
-func (logger *zapLogger) Panic(args ...any) {
-	logger.logger.Sugar().Panic(args...)
+func (l *zapLogger) Panic(args ...any) {
+	l.zap.Sugar().Panic(args...)
 }
 
-func (logger *zapLogger) Panicf(format string, args ...any) {
-	logger.logger.Sugar().Panicf(format, args...)
+func (l *zapLogger) Panicf(format string, args ...any) {
+	l.zap.Sugar().Panicf(format, args...)
 }
 
-func (logger *zapLogger) Fatal(args ...any) {
-	logger.logger.Sugar().Fatal(args...)
+func (l *zapLogger) Fatal(args ...any) {
+	l.zap.Sugar().Fatal(args...)
 }
 
-func (logger *zapLogger) Fatalf(format string, args ...any) {
-	logger.logger.Sugar().Fatalf(format, args...)
+func (l *zapLogger) Fatalf(format string, args ...any) {
+	l.zap.Sugar().Fatalf(format, args...)
 }
 
-func (logger *zapLogger) ZapLogger() (*zap.Logger, bool) {
-	if logger.logger != nil {
-		return logger.logger.WithOptions(zap.AddCallerSkip(-2)), true
+func (l *zapLogger) Log(level string, args ...any) {
+	var lv zapcore.Level
+	if v, err := zap.ParseAtomicLevel(level); err != nil {
+		lv = zap.DebugLevel
+	} else {
+		lv = v.Level()
 	}
-	return nil, false
+	if ce := l.zap.WithOptions(zap.AddCallerSkip(1)).Check(lv, fmt.Sprint(args...)); ce != nil {
+		ce.Write()
+	}
 }
 
-func (logger *zapLogger) ZeroLogger() (*zerolog.Logger, bool) {
-	return nil, false
+func (l *zapLogger) Logf(level, format string, args ...any) {
+	var lv zapcore.Level
+	if v, err := zap.ParseAtomicLevel(level); err != nil {
+		lv = zap.DebugLevel
+	} else {
+		lv = v.Level()
+	}
+	if ce := l.zap.Check(lv, fmt.Sprint(args...)); ce != nil {
+		ce.Write()
+	}
 }
 
-func (logger *zapLogger) Sync() error {
-	return logger.logger.Sync()
+func (l *zapLogger) Sync() error {
+	return l.zap.Sync()
 }
 
-func (logger *zapLogger) Clone() *zapLogger {
-	copy := *logger
-	cplog := *copy.logger
-	copy.logger = &cplog
+func (l *zapLogger) Logger() logcore.Logger {
+	l.zap = l.zap.WithOptions(zap.AddCallerSkip(-1))
+	return l
+}
+
+func (l *zapLogger) clone() *zapLogger {
+	copy := *l
+	cplog := *copy.zap
+	copy.zap = &cplog
 	return &copy
 }

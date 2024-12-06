@@ -6,8 +6,6 @@ import (
 	"github.com/BYT0723/go-tools/log/logcore"
 	"github.com/BYT0723/go-tools/log/zaplogger"
 	"github.com/BYT0723/go-tools/log/zerologger"
-	"github.com/rs/zerolog"
-	"go.uber.org/zap"
 )
 
 type (
@@ -42,7 +40,7 @@ func NewLogger(opts ...logcore.Option) (logcore.Logger, error) {
 	}
 }
 
-func With(kvs ...*logcore.Field) logcore.Logger {
+func With(kvs ...*Field) logcore.Logger {
 	return defaultLogger.With(kvs...)
 }
 
@@ -94,12 +92,14 @@ func Fatalf(format string, args ...any) {
 	defaultLogger.Fatalf(format, args...)
 }
 
-func ZapLogger() (*zap.Logger, bool) {
-	return defaultLogger.ZapLogger()
+func Default() Logger {
+	return defaultLogger.Logger()
 }
 
-func Zerologger() (*zerolog.Logger, bool) {
-	return defaultLogger.ZeroLogger()
+func SetDefault(logger Logger) {
+	if logger != nil {
+		defaultLogger = logger
+	}
 }
 
 func Sync() error {
