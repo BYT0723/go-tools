@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/BYT0723/go-tools/datastruct/stack"
+	"github.com/BYT0723/go-tools/ds"
 )
 
-var _ stack.Stack[int] = (*Stack[int])(nil)
+var _ ds.Stack[int] = (*Stack[int])(nil)
 
 type Stack[T any] struct {
 	items []T

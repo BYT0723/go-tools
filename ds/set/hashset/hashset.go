@@ -3,12 +3,12 @@ package hashset
 import (
 	"fmt"
 
-	"github.com/BYT0723/go-tools/datastruct/set"
+	ds "github.com/BYT0723/go-tools/ds"
 )
 
 type HashSet[T comparable] map[T]struct{}
 
-var _ set.Set[int] = HashSet[int](nil)
+var _ ds.Set[int] = HashSet[int](nil)
 
 // Create a new Set with element type T
 func NewHashSet[T comparable](items ...T) HashSet[T] {
@@ -52,7 +52,7 @@ func (s HashSet[T]) String() string {
 }
 
 // Union 返回两个集合的并集
-func (s HashSet[T]) Union(s1 set.Set[T]) set.Set[T] {
+func (s HashSet[T]) Union(s1 ds.Set[T]) ds.Set[T] {
 	result := make(HashSet[T])
 
 	for v := range s {
@@ -65,7 +65,7 @@ func (s HashSet[T]) Union(s1 set.Set[T]) set.Set[T] {
 }
 
 // Intersection 返回两个集合的交集
-func (s HashSet[T]) Intersection(s1 set.Set[T]) set.Set[T] {
+func (s HashSet[T]) Intersection(s1 ds.Set[T]) ds.Set[T] {
 	result := make(HashSet[T])
 
 	for _, v := range s1.Values() {
@@ -77,7 +77,7 @@ func (s HashSet[T]) Intersection(s1 set.Set[T]) set.Set[T] {
 }
 
 // Difference 返回两个集合的对称差集
-func (s HashSet[T]) Difference(s1 set.Set[T]) set.Set[T] {
+func (s HashSet[T]) Difference(s1 ds.Set[T]) ds.Set[T] {
 	result := make(HashSet[T])
 
 	for v := range s {
@@ -89,7 +89,7 @@ func (s HashSet[T]) Difference(s1 set.Set[T]) set.Set[T] {
 }
 
 // Difference 返回两个集合的差集
-func (s HashSet[T]) SymmetricDifference(s1 set.Set[T]) set.Set[T] {
+func (s HashSet[T]) SymmetricDifference(s1 ds.Set[T]) ds.Set[T] {
 	result := make(HashSet[T])
 
 	for v := range s {
