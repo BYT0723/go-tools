@@ -11,6 +11,7 @@ import (
 type (
 	Field  = logcore.Field
 	Logger = logcore.Logger
+	Config = logcore.LoggerConf
 )
 
 var defaultLogger Logger
