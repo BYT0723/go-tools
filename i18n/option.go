@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"maps"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
@@ -57,6 +58,13 @@ func WithTemplateFunc(name string, f any) Option {
 func WithTemplateFuncs(fs map[string]any) Option {
 	return func(ls *langset) {
 		maps.Copy(ls.tempParser.Funcs, fs)
+	}
+}
+
+// import [sprig](https://github.com/Masterminds/sprig) template funcs
+func WithDefaultTemplateFuncs() Option {
+	return func(ls *langset) {
+		maps.Copy(ls.tempParser.Funcs, sprig.TxtFuncMap())
 	}
 }
 
