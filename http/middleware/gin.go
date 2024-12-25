@@ -11,12 +11,19 @@ import (
 var (
 	_ gin.HandlerFunc = WithTraceLogger(nil)
 	_ gin.HandlerFunc = ApiLogger("")
+	_ gin.HandlerFunc = WithApiKey(func(ctx *gin.Context) string { return "" })
 )
 
-func WithTraceLogger(logger log.Logger, fields ...log.Field) func(*gin.Context) {
-	logger = logger.With(fields...)
+func WithTraceLogger(logger log.Logger) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		ctx.Request = ctx.Request.WithContext(uctx.WithLogger(ctx, logger))
+		ctx.Next()
+	}
+}
+
+func WithApiKey(keyGenerate func(ctx *gin.Context) string) func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		ctx.Request = ctx.Request.WithContext(uctx.WithApiKey(ctx, keyGenerate(ctx)))
 		ctx.Next()
 	}
 }
