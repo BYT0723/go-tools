@@ -19,21 +19,27 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 		return nil, err
 	}
 
-	cores := []zapcore.Core{}
-	if cfg.AllIn {
+	var (
+		cores    = []zapcore.Core{}
+		basename = filepath.Join(cfg.Dir, cfg.Name)
+	)
+	if cfg.Single {
 		targetLevel := level.Level()
 		cores = append(cores, newCore(
 			cfg,
 			func(l zapcore.Level) bool { return l >= targetLevel },
-			filepath.Join(cfg.Dir, fmt.Sprintf("%s.%s", cfg.Name, cfg.Ext)),
+			basename+cfg.Ext,
 		))
 	} else {
 		for i := level.Level(); i <= zap.FatalLevel; i++ {
-			targetLevel := i
+			var (
+				targetLevel = i
+				filename    = basename + "-" + targetLevel.String() + cfg.Ext
+			)
 			cores = append(cores, newCore(
 				cfg,
 				func(l zapcore.Level) bool { return l == targetLevel },
-				filepath.Join(cfg.Dir, fmt.Sprintf("%s-%s.%s", cfg.Name, targetLevel, cfg.Ext)),
+				filename,
 			))
 		}
 	}
@@ -51,7 +57,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 	return
 }
 
-func (logger *zapLogger) With(kvs ...*logcore.Field) logcore.Logger {
+func (logger *zapLogger) With(kvs ...logcore.Field) logcore.Logger {
 	fields := []zap.Field{}
 	for _, kv := range kvs {
 		fields = append(fields, zap.Any(kv.Key, kv.Value))
@@ -129,7 +135,7 @@ func (l *zapLogger) Logf(level, format string, args ...any) {
 	} else {
 		lv = v.Level()
 	}
-	if ce := l.zap.Check(lv, fmt.Sprint(args...)); ce != nil {
+	if ce := l.zap.Check(lv, fmt.Sprintf(format, args...)); ce != nil {
 		ce.Write()
 	}
 }

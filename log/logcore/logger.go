@@ -1,7 +1,7 @@
 package logcore
 
 type Logger interface {
-	With(kvs ...*Field) Logger
+	With(kvs ...Field) Logger
 	Debug(args ...any)
 	Debugf(format string, args ...any)
 	Info(args ...any)
@@ -17,5 +17,4 @@ type Logger interface {
 	Log(level string, args ...any)
 	Logf(level string, format string, args ...any)
 	Sync() error
-	Logger() Logger
 }

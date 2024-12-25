@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/BYT0723/go-tools/log"
-	"github.com/BYT0723/go-tools/log/logcore"
 	"github.com/BYT0723/go-tools/uctx"
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +13,7 @@ var (
 	_ gin.HandlerFunc = ApiLogger("")
 )
 
-func WithTraceLogger(logger log.Logger, fields ...*log.Field) func(*gin.Context) {
+func WithTraceLogger(logger log.Logger, fields ...log.Field) func(*gin.Context) {
 	logger = logger.With(fields...)
 	return func(ctx *gin.Context) {
 		ctx.Request = ctx.Request.WithContext(uctx.WithLogger(ctx, logger))
@@ -37,10 +36,10 @@ func ApiLogger(level string) func(*gin.Context) {
 		latency := time.Since(start)
 
 		l.With(
-			logcore.Any("method", ctx.Request.Method),
-			logcore.Any("path", ctx.Request.URL.Path),
-			logcore.Any("status", ctx.Writer.Status()),
-			logcore.Any("latency", latency),
+			log.Any("method", ctx.Request.Method),
+			log.Any("path", ctx.Request.URL.Path),
+			log.Any("status", ctx.Writer.Status()),
+			log.Any("latency", latency),
 		).Log(level, ctx.Request.Method)
 	}
 }

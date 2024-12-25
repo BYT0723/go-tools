@@ -1,16 +1,23 @@
-package logcore
+package log
+
+import (
+	"regexp"
+	"strings"
+
+	"github.com/BYT0723/go-tools/log/logcore"
+)
 
 type Option func(cfg *InitConf)
 
 type InitConf struct {
 	Type   LoggerType
-	LogCfg *LoggerConf
+	LogCfg *logcore.LoggerConf
 }
 
 func WithLoggerType(_t LoggerType) Option {
 	return func(cfg *InitConf) {
-		if _t == 0 || _t >= INVALID {
-			_t = ZAP
+		if _t == 0 || _t >= TypeInvalid {
+			_t = TypeZap
 		}
 		cfg.Type = _t
 	}
@@ -54,8 +61,11 @@ func WithMaxAge(age int) Option {
 	}
 }
 
-func WithConf(cfg *LoggerConf) Option {
+var extRegex = regexp.MustCompile(`^\.[a-zA-Z0-9]+$`)
+
+func WithConf(cfg *logcore.LoggerConf) Option {
 	return func(payload *InitConf) {
-		payload.LogCfg = cfg
+		cfg.Ext = extRegex.FindString(strings.TrimSpace(cfg.Ext))
+		payload.LogCfg.Merge(cfg)
 	}
 }

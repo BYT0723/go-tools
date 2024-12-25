@@ -9,14 +9,13 @@ import (
 )
 
 type (
-	Field  = logcore.Field
 	Logger = logcore.Logger
 	Config = logcore.LoggerConf
 )
 
 var defaultLogger Logger
 
-func Init(opts ...logcore.Option) error {
+func Init(opts ...Option) error {
 	logger, err := NewLogger(opts...)
 	if err != nil {
 		return err
@@ -25,23 +24,23 @@ func Init(opts ...logcore.Option) error {
 	return nil
 }
 
-func NewLogger(opts ...logcore.Option) (logcore.Logger, error) {
-	cfg := &logcore.InitConf{LogCfg: logcore.DefaultLoggerConf()}
+func NewLogger(opts ...Option) (logcore.Logger, error) {
+	cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 
 	for _, opt := range opts {
 		opt(cfg)
 	}
 	switch cfg.Type {
-	case logcore.ZEROLOG:
+	case TypeZeroLog:
 		return zerologger.NewInstance(cfg.LogCfg)
-	case logcore.ZAP:
+	case TypeZap:
 		return zaplogger.NewInstance(cfg.LogCfg)
 	default:
 		return nil, fmt.Errorf("unknown logger type: %v", cfg.Type)
 	}
 }
 
-func With(kvs ...*Field) logcore.Logger {
+func With(kvs ...Field) logcore.Logger {
 	return defaultLogger.With(kvs...)
 }
 
@@ -94,7 +93,7 @@ func Fatalf(format string, args ...any) {
 }
 
 func Default() Logger {
-	return defaultLogger.Logger()
+	return defaultLogger
 }
 
 func SetDefault(logger Logger) {

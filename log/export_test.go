@@ -7,14 +7,14 @@ import (
 )
 
 func BenchmarkZap(b *testing.B) {
-	l, err := NewLogger(logcore.WithLoggerType(
-		logcore.ZAP),
-		logcore.WithConf(&logcore.LoggerConf{
+	l, err := NewLogger(WithLoggerType(
+		TypeZap),
+		WithConf(&logcore.LoggerConf{
 			Dir:        "logs",
 			Name:       "app",
-			Ext:        "log",
+			Ext:        ".log",
 			Level:      "debug",
-			AllIn:      false,
+			Single:     false,
 			MaxBackups: 5,
 			MaxSize:    10,
 			MaxAge:     7,
@@ -31,13 +31,13 @@ func BenchmarkZap(b *testing.B) {
 
 func BenchmarkZeroLog(b *testing.B) {
 	l, err := NewLogger(
-		logcore.WithLoggerType(logcore.ZEROLOG),
-		logcore.WithConf(&logcore.LoggerConf{
+		WithLoggerType(TypeZeroLog),
+		WithConf(&logcore.LoggerConf{
 			Dir:        "logs",
 			Name:       "app",
-			Ext:        "log",
+			Ext:        ".log",
 			Level:      "debug",
-			AllIn:      false,
+			Single:     false,
 			MaxBackups: 5,
 			MaxSize:    10,
 			MaxAge:     7,

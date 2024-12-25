@@ -3,7 +3,7 @@ package zerologger
 import (
 	"fmt"
 	"io"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -39,20 +39,26 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 		return file[idx+1:] + ":" + strconv.Itoa(line)
 	}
 
-	var writers []io.Writer
+	var (
+		writers  []io.Writer
+		basename = filepath.Join(cfg.Dir, cfg.Name)
+	)
 
-	if cfg.AllIn {
+	if cfg.Single {
 		writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
-			Filename:   path.Join(cfg.Dir, fmt.Sprintf("%s.%s", cfg.Name, cfg.Ext)),
+			Filename:   basename + cfg.Ext,
 			MaxSize:    cfg.MaxSize,
 			MaxBackups: cfg.MaxBackups,
 			MaxAge:     cfg.MaxAge,
 		}), func(l zerolog.Level) bool { return l >= level }))
 	} else {
 		for i := level; i < zerolog.Disabled; i++ {
-			targetLevel := i
+			var (
+				targetLevel = i
+				filename    = basename + "-" + targetLevel.String() + cfg.Ext
+			)
 			writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
-				Filename:   path.Join(cfg.Dir, fmt.Sprintf("%s-%s.%s", cfg.Name, targetLevel, cfg.Ext)),
+				Filename:   filename,
 				MaxSize:    cfg.MaxSize,
 				MaxBackups: cfg.MaxBackups,
 				MaxAge:     cfg.MaxAge,
@@ -79,7 +85,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	return
 }
 
-func (l *zeroLogger) With(kvs ...*logcore.Field) logcore.Logger {
+func (l *zeroLogger) With(kvs ...logcore.Field) logcore.Logger {
 	copy := l.clone()
 	ctx := copy.zero.With()
 	for _, v := range kvs {
