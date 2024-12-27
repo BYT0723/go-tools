@@ -5,21 +5,34 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n/template"
 )
 
-type Localizer struct {
-	l          *i18n.Localizer
-	tempParser *template.TextParser
+type (
+	Localizer struct {
+		l          *i18n.Localizer
+		tempParser *template.TextParser
+	}
+	LocaleOption func(*i18n.LocalizeConfig)
+)
+
+func (l *Localizer) Msg(id string, opts ...LocaleOption) (string, error) {
+	lc := &i18n.LocalizeConfig{MessageID: id, TemplateParser: l.tempParser}
+	for _, opt := range opts {
+		opt(lc)
+	}
+	return l.l.Localize(lc)
 }
 
-func (l *Localizer) Msg(id string) (string, error) {
-	return l.l.Localize(&i18n.LocalizeConfig{MessageID: id})
+func (l *Localizer) MustMsg(id string, opts ...LocaleOption) string {
+	s, err := l.Msg(id, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
-func (l *Localizer) MsgWithParam(id string, param any) (string, error) {
-	return l.l.Localize(&i18n.LocalizeConfig{
-		MessageID:      id,
-		TemplateData:   param,
-		TemplateParser: l.tempParser,
-	})
+func WithParam(param any) LocaleOption {
+	return func(lc *i18n.LocalizeConfig) {
+		lc.TemplateData = param
+	}
 }
 
 // Plura的一些使用场景
@@ -87,11 +100,8 @@ func (l *Localizer) MsgWithParam(id string, param any) (string, error) {
 // -------------------------------------------
 // Plura必须为int或float类型，否则会出现panic
 // Plura为句子中包含的数量值，i18n通过这个判断使用哪种类型的句式
-func (l *Localizer) MsgWithPluraParam(id string, param, plura any) (string, error) {
-	return l.l.Localize(&i18n.LocalizeConfig{
-		MessageID:      id,
-		TemplateData:   param,
-		PluralCount:    plura,
-		TemplateParser: l.tempParser,
-	})
+func WithPluralCount(pluralCount any) LocaleOption {
+	return func(lc *i18n.LocalizeConfig) {
+		lc.PluralCount = pluralCount
+	}
 }

@@ -3,10 +3,11 @@ package i18n
 import (
 	"io/fs"
 	"maps"
+	"os"
+	"path/filepath"
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
 )
 
 type Option func(*langset)
@@ -26,12 +27,44 @@ func WithMsgFiles(paths ...string) Option {
 	}
 }
 
+func WithMsgDir(dirs ...string) Option {
+	return func(ls *langset) {
+		for _, dir := range dirs {
+			de, err := os.ReadDir(dir)
+			if err != nil {
+				panic(err)
+			}
+			for _, d := range de {
+				ls.b.MustLoadMessageFile(filepath.Join(dir, d.Name()))
+			}
+		}
+	}
+}
+
 func WithMsgFilesFs(fs fs.FS, paths ...string) Option {
 	return func(ls *langset) {
 		for _, p := range paths {
 			_, err := ls.b.LoadMessageFileFS(fs, p)
 			if err != nil {
 				panic(err)
+			}
+		}
+	}
+}
+
+func WithMsgFilesDirFs(fs fs.ReadDirFS, dirs ...string) Option {
+	return func(ls *langset) {
+		for _, dir := range dirs {
+			de, err := fs.ReadDir(dir)
+			if err != nil {
+				panic(err)
+			}
+
+			for _, d := range de {
+				_, err := ls.b.LoadMessageFileFS(fs, filepath.Join(dir, d.Name()))
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
 	}
@@ -65,38 +98,5 @@ func WithTemplateFuncs(fs map[string]any) Option {
 func WithDefaultTemplateFuncs() Option {
 	return func(ls *langset) {
 		maps.Copy(ls.tempParser.Funcs, sprig.TxtFuncMap())
-	}
-}
-
-type Message struct {
-	Language string
-	ID       string
-	Zero     string
-	One      string
-	Two      string
-	Few      string
-	Many     string
-	Other    string
-}
-
-func WithMessages(ms ...*Message) Option {
-	return func(ls *langset) {
-		for _, m := range ms {
-			lang, err := language.Parse(m.Language)
-			if err != nil {
-				panic(err)
-			}
-			if err := ls.b.AddMessages(lang, &i18n.Message{
-				ID:    m.ID,
-				Zero:  m.Zero,
-				One:   m.One,
-				Two:   m.Two,
-				Few:   m.Few,
-				Many:  m.Many,
-				Other: m.Other,
-			}); err != nil {
-				panic(err)
-			}
-		}
 	}
 }
