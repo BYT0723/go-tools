@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BYT0723/go-tools/log/logcore"
+	"github.com/BYT0723/go-tools/logx/logcore"
 	"github.com/rs/zerolog"
 	"gopkg.in/natefinch/lumberjack.v2"
 )

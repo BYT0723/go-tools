@@ -1,10 +1,10 @@
-package log
+package logx
 
 import (
 	"regexp"
 	"strings"
 
-	"github.com/BYT0723/go-tools/log/logcore"
+	"github.com/BYT0723/go-tools/logx/logcore"
 )
 
 type Option func(cfg *InitConf)

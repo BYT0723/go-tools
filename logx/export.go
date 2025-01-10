@@ -1,11 +1,11 @@
-package log
+package logx
 
 import (
 	"fmt"
 
-	"github.com/BYT0723/go-tools/log/logcore"
-	"github.com/BYT0723/go-tools/log/zaplogger"
-	"github.com/BYT0723/go-tools/log/zerologger"
+	"github.com/BYT0723/go-tools/logx/logcore"
+	"github.com/BYT0723/go-tools/logx/zaplogger"
+	"github.com/BYT0723/go-tools/logx/zerologger"
 )
 
 type (

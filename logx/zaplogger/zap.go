@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/BYT0723/go-tools/log/logcore"
+	"github.com/BYT0723/go-tools/logx/logcore"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

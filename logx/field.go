@@ -1,6 +1,6 @@
-package log
+package logx
 
-import "github.com/BYT0723/go-tools/log/logcore"
+import "github.com/BYT0723/go-tools/logx/logcore"
 
 type Field = logcore.Field
 

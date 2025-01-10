@@ -1,9 +1,9 @@
-package log
+package logx
 
 import (
 	"testing"
 
-	"github.com/BYT0723/go-tools/log/logcore"
+	"github.com/BYT0723/go-tools/logx/logcore"
 )
 
 func BenchmarkZap(b *testing.B) {
