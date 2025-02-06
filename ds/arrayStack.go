@@ -1,29 +1,27 @@
-package arraystack
+package ds
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/BYT0723/go-tools/ds"
 )
 
-var _ ds.Stack[int] = (*Stack[int])(nil)
+var _ Stack[int] = (*ArrayStack[int])(nil)
 
-type Stack[T any] struct {
+type ArrayStack[T any] struct {
 	items []T
 }
 
-func New[T any]() *Stack[T] {
-	return &Stack[T]{}
+func NewArrayStack[T any]() *ArrayStack[T] {
+	return &ArrayStack[T]{}
 }
 
-func (m *Stack[T]) Pop() (value T, exist bool) {
+func (m *ArrayStack[T]) Pop() (value T, exist bool) {
 	value, exist = m.Peek()
 	m.items = m.items[:len(m.items)-1]
 	return
 }
 
-func (m *Stack[T]) Peek() (value T, exist bool) {
+func (m *ArrayStack[T]) Peek() (value T, exist bool) {
 	if m.Empty() {
 		return
 	}
@@ -32,19 +30,19 @@ func (m *Stack[T]) Peek() (value T, exist bool) {
 	return
 }
 
-func (m *Stack[T]) Push(value T) {
+func (m *ArrayStack[T]) Push(value T) {
 	m.items = append(m.items, value)
 }
 
-func (m *Stack[T]) Empty() bool {
+func (m *ArrayStack[T]) Empty() bool {
 	return m.Size() == 0
 }
 
-func (m *Stack[T]) Size() int {
+func (m *ArrayStack[T]) Size() int {
 	return len(m.items)
 }
 
-func (m *Stack[T]) String() string {
+func (m *ArrayStack[T]) String() string {
 	var (
 		str    = "ArrayStack"
 		n      = m.Size()

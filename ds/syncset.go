@@ -1,10 +1,8 @@
-package syncset
+package ds
 
 import (
 	"fmt"
 	"sync"
-
-	ds "github.com/BYT0723/go-tools/ds"
 )
 
 type (
@@ -13,7 +11,7 @@ type (
 	}
 )
 
-var _ ds.Set[int] = (*SyncSet[int])(nil)
+var _ Set[int] = (*SyncSet[int])(nil)
 
 // Create a new Set with element type T
 func NewSyncSet[T comparable](items ...T) *SyncSet[T] {
@@ -70,7 +68,7 @@ func (s *SyncSet[T]) Values() []T {
 }
 
 // 并集
-func (s *SyncSet[T]) Union(s1 ds.Set[T]) ds.Set[T] {
+func (s *SyncSet[T]) Union(s1 Set[T]) Set[T] {
 	var result SyncSet[T]
 	for _, v := range s.Values() {
 		result.entries.Store(v, struct{}{})
@@ -82,7 +80,7 @@ func (s *SyncSet[T]) Union(s1 ds.Set[T]) ds.Set[T] {
 }
 
 // 交集
-func (s *SyncSet[T]) Intersection(s1 ds.Set[T]) ds.Set[T] {
+func (s *SyncSet[T]) Intersection(s1 Set[T]) Set[T] {
 	var result SyncSet[T]
 	for _, v := range s.Values() {
 		if s1.Contains(v) {
@@ -93,7 +91,7 @@ func (s *SyncSet[T]) Intersection(s1 ds.Set[T]) ds.Set[T] {
 }
 
 // 差集
-func (s *SyncSet[T]) Difference(s1 ds.Set[T]) ds.Set[T] {
+func (s *SyncSet[T]) Difference(s1 Set[T]) Set[T] {
 	var result SyncSet[T]
 	for _, v := range s.Values() {
 		if !s1.Contains(v) {
@@ -104,7 +102,7 @@ func (s *SyncSet[T]) Difference(s1 ds.Set[T]) ds.Set[T] {
 }
 
 // 对称差集
-func (s *SyncSet[T]) SymmetricDifference(s1 ds.Set[T]) ds.Set[T] {
+func (s *SyncSet[T]) SymmetricDifference(s1 Set[T]) Set[T] {
 	var result SyncSet[T]
 	for _, v := range s.Values() {
 		if !s1.Contains(v) {
