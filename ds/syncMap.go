@@ -2,51 +2,48 @@ package ds
 
 import "sync"
 
+var _ Map[int, int] = (*SyncMap[int, int])(nil)
+
 // Generic wrapper for sync.Map
-type SyncMap[T1, T2 any] struct {
-	entry sync.Map
+type SyncMap[K comparable, V any] struct {
+	entries sync.Map
 }
 
-func NewSyncMap[T1 comparable, T2 any](kvs map[T1]T2) *SyncMap[T1, T2] {
-	res := new(SyncMap[T1, T2])
-
-	for k, v := range kvs {
-		res.Store(k, v)
-	}
-
-	return res
+func NewSyncMap[K comparable, V any]() *SyncMap[K, V] {
+	return &SyncMap[K, V]{}
 }
 
-func (m *SyncMap[T1, T2]) Store(key T1, value T2) {
-	m.entry.Store(key, value)
+func (m *SyncMap[K, V]) Store(key K, value V) {
+	m.entries.Store(key, value)
 }
 
-func (m *SyncMap[T1, T2]) Load(key T1) (value T2, ok bool) {
-	v, ok := m.entry.Load(key)
+func (m *SyncMap[K, V]) Load(key K) (value V, ok bool) {
+	v, ok := m.entries.Load(key)
 	if !ok {
 		return
 	}
-	value, ok = v.(T2)
+	value, ok = v.(V)
 	return
 }
 
-func (m *SyncMap[T1, T2]) Delete(key T1) {
-	m.entry.Delete(key)
+func (m *SyncMap[K, V]) Delete(key K) bool {
+	m.entries.Delete(key)
+	return true
 }
 
-func (m *SyncMap[T1, T2]) Swap(key T1, value T2) (pre T2, loaded bool) {
-	previous, loaded := m.entry.Swap(key, value)
-	pre, _ = previous.(T2)
+func (m *SyncMap[K, V]) Swap(key K, value V) (pre V, loaded bool) {
+	previous, loaded := m.entries.Swap(key, value)
+	pre, _ = previous.(V)
 	return
 }
 
-func (m *SyncMap[T1, T2]) Range(iterator func(key T1, value T2) bool) {
-	m.entry.Range(func(key, value any) bool {
-		k, ok := key.(T1)
+func (m *SyncMap[K, V]) Range(iterator func(key K, value V) bool) {
+	m.entries.Range(func(key, value any) bool {
+		k, ok := key.(K)
 		if !ok {
 			return false
 		}
-		v, ok := value.(T2)
+		v, ok := value.(V)
 		if !ok {
 			return false
 		}
@@ -54,22 +51,46 @@ func (m *SyncMap[T1, T2]) Range(iterator func(key T1, value T2) bool) {
 	})
 }
 
-func (m *SyncMap[T1, T2]) LoadOrStore(key T1, new T2) (actual T2, loaded bool) {
-	v, loaded := m.entry.LoadOrStore(key, new)
-	actual, _ = v.(T2)
+func (m *SyncMap[K, V]) LoadOrStore(key K, new V) (actual V, loaded bool) {
+	v, loaded := m.entries.LoadOrStore(key, new)
+	actual, _ = v.(V)
 	return
 }
 
-func (m *SyncMap[T1, T2]) LoadAndDelete(key T1) (value T2, loaded bool) {
-	v, loaded := m.entry.LoadAndDelete(key)
-	value, _ = v.(T2)
+func (m *SyncMap[K, V]) LoadAndDelete(key K) (value V, loaded bool) {
+	v, loaded := m.entries.LoadAndDelete(key)
+	value, _ = v.(V)
 	return
 }
 
-func (m *SyncMap[T1, T2]) CompareAndSwap(key T1, old, new T2) bool {
-	return m.entry.CompareAndSwap(key, old, new)
+func (m *SyncMap[K, V]) CompareAndSwap(key K, old, new V) bool {
+	return m.entries.CompareAndSwap(key, old, new)
 }
 
-func (m *SyncMap[T1, T2]) CompareAndDelete(key T1, old T2) bool {
-	return m.entry.CompareAndDelete(key, old)
+func (m *SyncMap[K, V]) CompareAndDelete(key K, old V) bool {
+	return m.entries.CompareAndDelete(key, old)
+}
+
+func (m *SyncMap[K, V]) CompareFnAndSwap(key K, fn func(V, V) bool, old, new V) bool {
+	value, ok := m.entries.Load(key)
+	if !ok {
+		return false
+	}
+	if !fn(value.(V), old) {
+		return false
+	}
+	m.entries.Store(key, new)
+	return true
+}
+
+func (m *SyncMap[K, V]) CompareFnAndDelete(key K, fn func(V, V) bool, old V) bool {
+	value, ok := m.entries.Load(key)
+	if !ok {
+		return false
+	}
+	if !fn(value.(V), old) {
+		return false
+	}
+	m.entries.Delete(key)
+	return true
 }

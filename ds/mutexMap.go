@@ -1,0 +1,134 @@
+package ds
+
+import (
+	"sync"
+)
+
+var _ Map[int, int] = (*MutexMap[int, int])(nil)
+
+type MutexMap[K comparable, V any] struct {
+	l       sync.Mutex
+	entries map[K]V
+}
+
+func NewMutexMap[K comparable, V any]() *MutexMap[K, V] {
+	return &MutexMap[K, V]{
+		entries: make(map[K]V),
+	}
+}
+
+func (m *MutexMap[K, V]) Store(key K, value V) {
+	m.l.Lock()
+	defer m.l.Unlock()
+	m.entries[key] = value
+}
+
+func (m *MutexMap[K, V]) Load(key K) (value V, ok bool) {
+	m.l.Lock()
+	defer m.l.Unlock()
+	value, ok = m.entries[key]
+	return
+}
+
+func (m *MutexMap[K, V]) Delete(key K) bool {
+	m.l.Lock()
+	defer m.l.Unlock()
+	delete(m.entries, key)
+	return true
+}
+
+func (m *MutexMap[K, V]) Swap(key K, value V) (pre V, loaded bool) {
+	m.l.Lock()
+	defer m.l.Unlock()
+	pre, loaded = m.entries[key]
+	m.entries[key] = value
+	return
+}
+
+func (m *MutexMap[K, V]) Range(iterator func(key K, value V) bool) {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	for k, v := range m.entries {
+		if !iterator(k, v) {
+			break
+		}
+	}
+}
+
+func (m *MutexMap[K, V]) LoadOrStore(key K, new V) (actual V, loaded bool) {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	actual, loaded = m.entries[key]
+	if !loaded {
+		m.entries[key] = new
+		actual = new
+	}
+	return
+}
+
+func (m *MutexMap[K, V]) LoadAndDelete(key K) (value V, loaded bool) {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	value, loaded = m.entries[key]
+	if loaded {
+		delete(m.entries, key)
+	}
+	return
+}
+
+func (m *MutexMap[K, V]) CompareAndSwap(key K, old, new V) bool {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	v, ok := m.entries[key]
+	if !ok || any(v) != any(old) {
+		return false
+	}
+	m.entries[key] = new
+	return true
+}
+
+func (m *MutexMap[K, V]) CompareAndDelete(key K, old V) bool {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	v, ok := m.entries[key]
+	if !ok || any(v) != any(old) {
+		return false
+	}
+	delete(m.entries, key)
+	return true
+}
+
+func (m *MutexMap[K, V]) CompareFnAndSwap(key K, fn func(V, V) bool, old, new V) bool {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	v, ok := m.entries[key]
+	if !ok {
+		return false
+	}
+	if !fn(v, old) {
+		return false
+	}
+	m.entries[key] = new
+	return true
+}
+
+func (m *MutexMap[K, V]) CompareFnAndDelete(key K, fn func(V, V) bool, old V) bool {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	v, ok := m.entries[key]
+	if !ok {
+		return false
+	}
+	if !fn(v, old) {
+		return false
+	}
+	delete(m.entries, key)
+	return true
+}
