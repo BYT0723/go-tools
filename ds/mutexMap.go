@@ -80,27 +80,11 @@ func (m *MutexMap[K, V]) LoadAndDelete(key K) (value V, loaded bool) {
 }
 
 func (m *MutexMap[K, V]) CompareAndSwap(key K, old, new V) bool {
-	m.l.Lock()
-	defer m.l.Unlock()
-
-	v, ok := m.entries[key]
-	if !ok || any(v) != any(old) {
-		return false
-	}
-	m.entries[key] = new
-	return true
+	return m.CompareFnAndSwap(key, func(a, b V) bool { return any(a) == any(b) }, old, new)
 }
 
 func (m *MutexMap[K, V]) CompareAndDelete(key K, old V) bool {
-	m.l.Lock()
-	defer m.l.Unlock()
-
-	v, ok := m.entries[key]
-	if !ok || any(v) != any(old) {
-		return false
-	}
-	delete(m.entries, key)
-	return true
+	return m.CompareFnAndDelete(key, func(a, b V) bool { return any(a) == any(b) }, old)
 }
 
 func (m *MutexMap[K, V]) CompareFnAndSwap(key K, fn func(V, V) bool, old, new V) bool {
