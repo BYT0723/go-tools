@@ -1,7 +1,6 @@
 package ds
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 	"time"
@@ -41,9 +40,6 @@ func NewCache[T any](opt *CacheOpt) *Cache[T] {
 	if c.cleanup > 0 {
 		exit := make(chan struct{})
 		go func() {
-			defer func() {
-				fmt.Println("退出了咯")
-			}()
 			t := time.NewTicker(c.cleanup)
 			for {
 				select {
