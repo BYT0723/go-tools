@@ -8,11 +8,11 @@ import (
 type (
 	NewFunc[K, V any]  func(ctx context.Context, key K) (V, error)
 	IDFunc[K any]      func(key K) string
-	DestoryFunc[V any] func(ctx context.Context, value V) error
+	DestroyFunc[V any] func(ctx context.Context, value V) error
 	Pool[K, V any]     struct {
 		New        NewFunc[K, V]
 		Identifier IDFunc[K]
-		Destory    DestoryFunc[V]
+		Destroy    DestroyFunc[V]
 		entries    SyncMap[string, *poolItem[V]]
 	}
 	poolItem[V any] struct {
@@ -60,5 +60,5 @@ func (p *Pool[K, V]) PutWithCtx(ctx context.Context, key K) (err error) {
 	if item.borrow.Add(-1) == 0 {
 		p.entries.Delete(k)
 	}
-	return p.Destory(ctx, item.value)
+	return p.Destroy(ctx, item.value)
 }

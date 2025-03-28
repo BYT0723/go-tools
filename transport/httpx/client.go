@@ -29,25 +29,52 @@ func NewClient(opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) Get(ctx context.Context, rawUrl string, header http.Header, payload any) (code int, body []byte, err error) {
+func (c *Client) Get(
+	ctx context.Context,
+	rawUrl string,
+	header http.Header,
+	payload any,
+) (code int, body []byte, err error) {
 	return c.handle(ctx, http.MethodGet, rawUrl, payload, header, nil, false)
 }
 
-func (c *Client) Post(ctx context.Context, rawUrl string, header http.Header, payload any) (code int, body []byte, err error) {
+func (c *Client) Post(
+	ctx context.Context,
+	rawUrl string,
+	header http.Header,
+	payload any,
+) (code int, body []byte, err error) {
 	return c.handle(ctx, http.MethodPost, rawUrl, payload, header, nil, false)
 }
 
-func (c *Client) GetAny(ctx context.Context, rawUrl string, header http.Header, payload any, result any) (code int, err error) {
+func (c *Client) GetAny(
+	ctx context.Context,
+	rawUrl string,
+	header http.Header,
+	payload any,
+	result any,
+) (code int, err error) {
 	code, _, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, result, true)
 	return
 }
 
-func (c *Client) PostAny(ctx context.Context, rawUrl string, header http.Header, payload any, result any) (code int, err error) {
+func (c *Client) PostAny(
+	ctx context.Context,
+	rawUrl string,
+	header http.Header,
+	payload any,
+	result any,
+) (code int, err error) {
 	code, _, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, result, true)
 	return
 }
 
-func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Header, payload any) (code int, body io.ReadCloser, err error) {
+func (c *Client) Do(
+	ctx context.Context,
+	method, rawUrl string,
+	header http.Header,
+	payload any,
+) (code int, body io.ReadCloser, err error) {
 	var buf bytes.Buffer
 	defer buf.Reset()
 
@@ -93,7 +120,10 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 					switch value.Kind() {
 					case reflect.Slice, reflect.Array:
 						for j := 0; j < value.Len(); j++ {
-							query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(value.Index(j).Interface()))
+							query.Add(
+								fmt.Sprint(k.Interface()),
+								fmt.Sprint(value.Index(j).Interface()),
+							)
 						}
 					default:
 						query.Add(fmt.Sprint(k.Interface()), fmt.Sprint(value))
@@ -134,7 +164,14 @@ func (c *Client) Do(ctx context.Context, method, rawUrl string, header http.Head
 	return
 }
 
-func (c *Client) handle(ctx context.Context, method, rawUrl string, payload any, header http.Header, result any, isDecode bool) (code int, body []byte, err error) {
+func (c *Client) handle(
+	ctx context.Context,
+	method, rawUrl string,
+	payload any,
+	header http.Header,
+	result any,
+	isDecode bool,
+) (code int, body []byte, err error) {
 	code, resp, err := c.Do(ctx, method, rawUrl, header, payload)
 	if err != nil {
 		return

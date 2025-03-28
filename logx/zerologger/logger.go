@@ -69,17 +69,21 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	if cfg.Console {
 		writers = append(writers, zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
 			w.TimeFormat = zerolog.TimeFieldFormat + "\t"
-			w.FormatLevel = func(i interface{}) string {
+			w.FormatLevel = func(i any) string {
 				return strings.ToUpper(fmt.Sprint(i, "\t"))
 			}
-			w.FormatMessage = func(i interface{}) string {
+			w.FormatMessage = func(i any) string {
 				return fmt.Sprint(i, "\t")
 			}
 		}))
 	}
 
 	ins = &zeroLogger{
-		zero: zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger(),
+		zero: zerolog.New(zerolog.MultiLevelWriter(writers...)).
+			With().
+			Timestamp().
+			CallerWithSkipFrameCount(4).
+			Logger(),
 	}
 
 	return
