@@ -35,7 +35,8 @@ func (c *Client) Get(
 	header http.Header,
 	payload any,
 ) (code int, body []byte, err error) {
-	return c.handle(ctx, http.MethodGet, rawUrl, payload, header, nil, false)
+	code, _, body, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, nil, false)
+	return
 }
 
 func (c *Client) Post(
@@ -44,7 +45,8 @@ func (c *Client) Post(
 	header http.Header,
 	payload any,
 ) (code int, body []byte, err error) {
-	return c.handle(ctx, http.MethodPost, rawUrl, payload, header, nil, false)
+	code, _, body, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, nil, false)
+	return
 }
 
 func (c *Client) GetAny(
@@ -54,7 +56,7 @@ func (c *Client) GetAny(
 	payload any,
 	result any,
 ) (code int, err error) {
-	code, _, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, result, true)
+	code, _, _, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, result, true)
 	return
 }
 
@@ -65,7 +67,7 @@ func (c *Client) PostAny(
 	payload any,
 	result any,
 ) (code int, err error) {
-	code, _, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, result, true)
+	code, _, _, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, result, true)
 	return
 }
 
@@ -74,7 +76,7 @@ func (c *Client) Do(
 	method, rawUrl string,
 	header http.Header,
 	payload any,
-) (code int, body io.ReadCloser, err error) {
+) (code int, respHeader http.Header, respBody io.ReadCloser, err error) {
 	var buf bytes.Buffer
 	defer buf.Reset()
 
@@ -82,7 +84,7 @@ func (c *Client) Do(
 		if method == http.MethodGet {
 			u, err := url.Parse(rawUrl)
 			if err != nil {
-				return 0, nil, err
+				return 0, nil, nil, err
 			}
 			var (
 				query = u.Query()
@@ -91,7 +93,7 @@ func (c *Client) Do(
 			)
 			switch t.Kind() {
 			case reflect.Struct:
-				for i := 0; i < t.NumField(); i++ {
+				for i := range t.NumField() {
 					value := v.Field(i)
 					if value.Kind() == reflect.Interface {
 						value = value.Elem()
@@ -100,7 +102,7 @@ func (c *Client) Do(
 
 					switch value.Kind() {
 					case reflect.Slice, reflect.Array:
-						for j := 0; j < value.Len(); j++ {
+						for j := range value.Len() {
 							query.Add(fieldName, fmt.Sprint(value.Index(j).Interface()))
 						}
 					default:
@@ -109,7 +111,7 @@ func (c *Client) Do(
 				}
 			case reflect.Map:
 				if t.Key().Kind() != reflect.String {
-					return 0, nil, errors.New("GET Params Map key type must be string")
+					return 0, nil, nil, errors.New("GET Params Map key type must be string")
 				}
 				for _, k := range v.MapKeys() {
 					value := v.MapIndex(k)
@@ -119,7 +121,7 @@ func (c *Client) Do(
 
 					switch value.Kind() {
 					case reflect.Slice, reflect.Array:
-						for j := 0; j < value.Len(); j++ {
+						for j := range value.Len() {
 							query.Add(
 								fmt.Sprint(k.Interface()),
 								fmt.Sprint(value.Index(j).Interface()),
@@ -131,14 +133,14 @@ func (c *Client) Do(
 
 				}
 			default:
-				return 0, nil, errors.New("GET Params need [Map|Struct]")
+				return 0, nil, nil, errors.New("GET Params need [Map|Struct]")
 			}
 			u.RawQuery = query.Encode()
 			rawUrl = u.String()
 		} else {
 			bs, err := c.encoder(ctx, payload)
 			if err != nil {
-				return 0, nil, err
+				return 0, nil, nil, err
 			}
 			buf.Write(bs)
 		}
@@ -160,7 +162,8 @@ func (c *Client) Do(
 	}
 
 	code = resp.StatusCode
-	body = resp.Body
+	respHeader = resp.Header
+	respBody = resp.Body
 	return
 }
 
@@ -171,22 +174,22 @@ func (c *Client) handle(
 	header http.Header,
 	result any,
 	isDecode bool,
-) (code int, body []byte, err error) {
-	code, resp, err := c.Do(ctx, method, rawUrl, header, payload)
+) (code int, respHeader http.Header, respBody []byte, err error) {
+	code, respHeader, resp, err := c.Do(ctx, method, rawUrl, header, payload)
 	if err != nil {
 		return
 	}
 	defer resp.Close()
 
-	body, err = io.ReadAll(resp)
+	respBody, err = io.ReadAll(resp)
 	if err != nil {
 		return
 	}
 
 	if isDecode {
-		err = c.decoder(ctx, bytes.NewBuffer(body), result)
+		err = c.decoder(ctx, bytes.NewBuffer(respBody), result)
 		if err != nil {
-			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, body)
+			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, respBody)
 		}
 	}
 	return
