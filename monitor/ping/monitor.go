@@ -9,6 +9,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+var _ monitor.Monitor = (*Monitor)(nil)
+
 type (
 	Monitor struct {
 		addr            string

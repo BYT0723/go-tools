@@ -1,11 +1,17 @@
 package monitor
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type (
-	Severity uint8
-	Source   string
-	Alert    struct {
+	Monitor interface {
+		Start(context.Context)
+		Stop(context.Context)
+		Subscribe() <-chan *Alert
+	}
+	Alert struct {
 		Ts       time.Time
 		Severity Severity
 		Source   Source
@@ -14,37 +20,6 @@ type (
 		Payload  any
 	}
 	AlertRule[T any] func(*T) (*Alert, bool)
-)
-
-const (
-	SeverityDebug    Severity = iota // 调试信息
-	SeverityInfo                     // 一般信息
-	SeverityWarning                  // 警告
-	SeverityError                    // 错误
-	SeverityCritical                 // 严重错误
-)
-
-// String 实现Severity的字符串表示
-func (s Severity) String() string {
-	switch s {
-	case SeverityDebug:
-		return "DEBUG"
-	case SeverityInfo:
-		return "INFO"
-	case SeverityWarning:
-		return "WARNING"
-	case SeverityError:
-		return "ERROR"
-	case SeverityCritical:
-		return "CRITICAL"
-	default:
-		return "UNKNOWN"
-	}
-}
-
-const (
-	SourceInternal  Source = "internal"
-	SourceAlertRule Source = "alert_rule"
 )
 
 func InternalAlert(err error) *Alert {

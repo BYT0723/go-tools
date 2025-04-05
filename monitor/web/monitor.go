@@ -12,6 +12,8 @@ import (
 	"github.com/BYT0723/go-tools/transport/httpx"
 )
 
+var _ monitor.Monitor = (*Monitor)(nil)
+
 type (
 	Monitor struct {
 		client  *httpx.Client
@@ -113,7 +115,7 @@ func (m *Monitor) Start(ctx context.Context) {
 	}()
 }
 
-func (m *Monitor) Stop() {
+func (m *Monitor) Stop(_ context.Context) {
 	if m.cf != nil {
 		m.cf()
 	}
