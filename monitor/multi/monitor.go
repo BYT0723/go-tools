@@ -4,39 +4,35 @@ import (
 	"context"
 
 	"github.com/BYT0723/go-tools/monitor"
+	"github.com/BYT0723/go-tools/monitor/component"
 )
 
 type MultiMonitor struct {
-	ch       chan *monitor.Alert
+	*component.MonitorComponent
 	monitors []monitor.Monitor
-	ctx      context.Context
-	cf       context.CancelFunc
 }
 
 func NewMultiMonitor(monitors ...monitor.Monitor) *MultiMonitor {
 	return &MultiMonitor{
-		monitors: monitors,
-		ch:       make(chan *monitor.Alert, 1024*len(monitors)),
+		MonitorComponent: component.NewMonitorComponent(),
+		monitors:         monitors,
 	}
 }
 
 func (m *MultiMonitor) Start(ctx context.Context) {
-	m.ctx, m.cf = context.WithCancel(ctx)
+	m.SetContext(ctx)
+
 	for _, item := range m.monitors {
 		go func() {
-			item.Start(m.ctx)
+			item.Start(m.Context())
 			for ar := range item.Subscribe() {
-				m.ch <- ar
+				m.Notify(ar)
 			}
 		}()
 	}
-}
 
-func (m *MultiMonitor) Stop(ctx context.Context) {
-	m.cf()
-	close(m.ch)
-}
-
-func (m *MultiMonitor) Subscribe() <-chan *monitor.Alert {
-	return m.ch
+	go func() {
+		<-m.Context().Done()
+		m.Stop(ctx)
+	}()
 }

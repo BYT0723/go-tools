@@ -11,12 +11,8 @@ import (
 )
 
 func TestHttpMonitor(t *testing.T) {
-	m := NewMonitor(
-		http.MethodGet,
-		"https://www.baidu.com",
-		WithCycle(10*time.Second),
-		WithTimeout(5*time.Second),
-	)
+	m := NewMonitor(http.MethodGet, "https://www.baidu.com", WithTimeout(5*time.Second))
+	m.SetCycle(10 * time.Second)
 	m.AddAlertRule(func(s *Statistics) (*monitor.Alert, bool) {
 		fmt.Println(s.Code, s.Header)
 		if s.Code != http.StatusOK {

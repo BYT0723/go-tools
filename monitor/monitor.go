@@ -9,6 +9,8 @@ type (
 	Monitor interface {
 		Start(context.Context)
 		Stop(context.Context)
+		SetCycle(time.Duration)
+		SetTimeout(time.Duration)
 		Subscribe() <-chan *Alert
 	}
 	Alert struct {

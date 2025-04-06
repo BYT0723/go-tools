@@ -11,7 +11,8 @@ import (
 )
 
 func TestPingMonitor(t *testing.T) {
-	m := NewMonitor("8.8.8.8", WithCount(5), WithCycle(10*time.Second), WithAlertRules())
+	m := NewMonitor("8.8.8.8", WithCount(5))
+	m.SetCycle(10 * time.Second)
 	m.AddAlertRule(func(s *probing.Statistics) (*monitor.Alert, bool) {
 		fmt.Printf("s: %v\n", s)
 		if s.PacketLoss > 0 {

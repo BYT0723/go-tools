@@ -1,17 +1,6 @@
 package ping
 
-import (
-	"time"
-
-	"github.com/BYT0723/go-tools/monitor"
-	probing "github.com/prometheus-community/pro-bing"
-)
-
-func WithCycle(cycle time.Duration) Option {
-	return func(p *Monitor) {
-		p.cycle = cycle
-	}
-}
+import "time"
 
 func WithCount(count int) Option {
 	return func(p *Monitor) {
@@ -19,9 +8,9 @@ func WithCount(count int) Option {
 	}
 }
 
-func WithAlertRules(rules ...monitor.AlertRule[probing.Statistics]) Option {
+func WithTimeout(timeout time.Duration) Option {
 	return func(p *Monitor) {
-		p.alertRules = rules
+		p.Timeout = timeout
 	}
 }
 
