@@ -2,117 +2,47 @@ package httpx
 
 import (
 	"context"
-	"net/http"
 	"time"
 )
 
-var DefaultClient = NewClient()
+var defaultClient = NewClient()
 
-func Get(rawUrl string, header http.Header, data any) (code int, body []byte, err error) {
-	return DefaultClient.Get(context.Background(), rawUrl, header, data)
+func Get(rawUrl string, ps ...Param) (*Response, error) {
+	return defaultClient.Get(context.Background(), rawUrl, ps...)
 }
 
-func GetWithContext(
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	data any,
-) (code int, body []byte, err error) {
-	return DefaultClient.Get(ctx, rawUrl, header, data)
+func Getx(ctx context.Context, rawUrl string, ps ...Param) (*Response, error) {
+	return defaultClient.Get(ctx, rawUrl, ps...)
 }
 
-func GetTimeout(
-	rawUrl string,
-	header http.Header,
-	data any,
-	timeout time.Duration,
-) (code int, resp []byte, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	return DefaultClient.Get(ctx, rawUrl, header, data)
+func GetAny[T any](rawUrl string, ps ...Param) (*Response, *T, error) {
+	obj := new(T)
+	resp, err := defaultClient.GetAny(context.Background(), rawUrl, obj, ps...)
+	return resp, obj, err
 }
 
-func GetAny[T any](rawUrl string, header http.Header, data any) (code int, resp *T, err error) {
-	resp = new(T)
-	code, err = DefaultClient.GetAny(context.Background(), rawUrl, header, data, resp)
-	return
+func GetxAny[T any](ctx context.Context, rawUrl string, ps ...Param) (*Response, *T, error) {
+	obj := new(T)
+	resp, err := defaultClient.GetAny(ctx, rawUrl, obj, ps...)
+	return resp, obj, err
 }
 
-func GetAnyWithContext[T any](
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	data any,
-) (code int, resp *T, err error) {
-	resp = new(T)
-	code, err = DefaultClient.GetAny(ctx, rawUrl, header, data, resp)
-	return
+func Post(rawUrl string, ps ...Param) (*Response, error) {
+	return defaultClient.Post(context.Background(), rawUrl, ps...)
 }
 
-func GetAnyTimeout[T any](
-	rawUrl string,
-	header http.Header,
-	data any,
-	timeout time.Duration,
-) (code int, resp *T, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	resp = new(T)
-	code, err = DefaultClient.GetAny(ctx, rawUrl, header, data, resp)
-	return
+func Postx(ctx context.Context, rawUrl string, ps ...Param) (*Response, error) {
+	return defaultClient.Post(ctx, rawUrl, ps...)
 }
 
-func Post(rawUrl string, header http.Header, data any) (code int, body []byte, err error) {
-	return DefaultClient.Post(context.Background(), rawUrl, header, data)
+func PostAny[T any](rawUrl string, timeout time.Duration, ps ...Param) (*Response, *T, error) {
+	obj := new(T)
+	resp, err := defaultClient.PostAny(context.Background(), rawUrl, obj, ps...)
+	return resp, obj, err
 }
 
-func PostWithContext(
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	data any,
-) (code int, body []byte, err error) {
-	return DefaultClient.Post(ctx, rawUrl, header, data)
-}
-
-func PostTimeout(
-	rawUrl string,
-	header http.Header,
-	data any,
-	timeout time.Duration,
-) (code int, body []byte, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	return DefaultClient.Post(ctx, rawUrl, header, data)
-}
-
-func PostAny[T any](rawUrl string, header http.Header, data any) (code int, resp *T, err error) {
-	resp = new(T)
-	code, err = DefaultClient.PostAny(context.Background(), rawUrl, header, data, resp)
-	return
-}
-
-func PostAnyWithContext[T any](
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	data any,
-	timeout time.Duration,
-) (code int, resp *T, err error) {
-	resp = new(T)
-	code, err = DefaultClient.PostAny(ctx, rawUrl, header, data, resp)
-	return
-}
-
-func PostAnyTimeout[T any](
-	rawUrl string,
-	header http.Header,
-	data any,
-	timeout time.Duration,
-) (code int, resp *T, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	resp = new(T)
-	code, err = DefaultClient.PostAny(ctx, rawUrl, header, data, resp)
-	return
+func PostxAny[T any](ctx context.Context, rawUrl string, timeout time.Duration, ps ...Param) (*Response, *T, error) {
+	obj := new(T)
+	resp, err := defaultClient.PostAny(ctx, rawUrl, obj, ps...)
+	return resp, obj, err
 }

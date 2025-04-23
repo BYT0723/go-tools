@@ -11,11 +11,23 @@ import (
 	"reflect"
 )
 
-type Client struct {
-	encoder     Encoder
-	decoder     Decoder
-	innerClient *http.Client
-}
+type (
+	Client struct {
+		encoder     Encoder
+		decoder     Decoder
+		innerClient *http.Client
+	}
+	Request struct {
+		Header  http.Header
+		Payload any
+	}
+	Response struct {
+		Code    int
+		Header  http.Header
+		Cookies []*http.Cookie
+		Body    []byte
+	}
+)
 
 func NewClient(opts ...Option) *Client {
 	c := &Client{
@@ -29,67 +41,47 @@ func NewClient(opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) Get(
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	payload any,
-) (code int, body []byte, err error) {
-	code, _, body, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, nil, false)
-	return
+func (c *Client) Get(ctx context.Context, addr string, ps ...Param) (resp *Response, err error) {
+	return c.handle(ctx, http.MethodGet, addr, nil, ps...)
 }
 
-func (c *Client) Post(
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	payload any,
-) (code int, body []byte, err error) {
-	code, _, body, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, nil, false)
-	return
+func (c *Client) Post(ctx context.Context, addr string, ps ...Param) (resp *Response, err error) {
+	return c.handle(ctx, http.MethodPost, addr, nil, ps...)
 }
 
-func (c *Client) GetAny(
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	payload any,
-	result any,
-) (code int, err error) {
-	code, _, _, err = c.handle(ctx, http.MethodGet, rawUrl, payload, header, result, true)
-	return
+func (c *Client) GetAny(ctx context.Context, addr string, result any, ps ...Param) (resp *Response, err error) {
+	return c.handle(ctx, http.MethodGet, addr, result, ps...)
 }
 
-func (c *Client) PostAny(
-	ctx context.Context,
-	rawUrl string,
-	header http.Header,
-	payload any,
-	result any,
-) (code int, err error) {
-	code, _, _, err = c.handle(ctx, http.MethodPost, rawUrl, payload, header, result, true)
-	return
+func (c *Client) PostAny(ctx context.Context, addr string, result any, ps ...Param) (resp *Response, err error) {
+	return c.handle(ctx, http.MethodPost, addr, result, ps...)
 }
 
-func (c *Client) Do(
-	ctx context.Context,
-	method, rawUrl string,
-	header http.Header,
-	payload any,
-) (code int, respHeader http.Header, respBody io.ReadCloser, err error) {
-	var buf bytes.Buffer
-	defer buf.Reset()
+func (c *Client) Do(ctx context.Context, method, addr string, ps ...Param) (resp *Response, err error) {
+	return c.handle(ctx, method, addr, nil, ps...)
+}
 
-	if payload != nil {
-		if method == http.MethodGet {
-			u, err := url.Parse(rawUrl)
+func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp *http.Response, err error) {
+	var (
+		req   *http.Request
+		param = &Request{}
+	)
+	for _, p := range ps {
+		p(param)
+	}
+
+	if param.Payload != nil {
+		switch method {
+		case http.MethodGet, http.MethodHead, http.MethodDelete:
+			var u *url.URL
+			u, err = url.Parse(addr)
 			if err != nil {
-				return 0, nil, nil, err
+				return
 			}
 			var (
 				query = u.Query()
-				t     = reflect.TypeOf(payload)
-				v     = reflect.ValueOf(payload)
+				t     = reflect.TypeOf(param.Payload)
+				v     = reflect.ValueOf(param.Payload)
 			)
 			switch t.Kind() {
 			case reflect.Struct:
@@ -111,7 +103,8 @@ func (c *Client) Do(
 				}
 			case reflect.Map:
 				if t.Key().Kind() != reflect.String {
-					return 0, nil, nil, errors.New("GET Params Map key type must be string")
+					err = errors.New("GET Params Map key type must be string")
+					return
 				}
 				for _, k := range v.MapKeys() {
 					value := v.MapIndex(k)
@@ -133,63 +126,79 @@ func (c *Client) Do(
 
 				}
 			default:
-				return 0, nil, nil, errors.New("GET Params need [Map|Struct]")
+				err = errors.New("GET Params must be Map or Struct")
+				return
 			}
 			u.RawQuery = query.Encode()
-			rawUrl = u.String()
-		} else {
-			bs, err := c.encoder(ctx, payload)
+			req, err = http.NewRequestWithContext(ctx, method, u.String(), nil)
 			if err != nil {
-				return 0, nil, nil, err
+				return
 			}
-			buf.Write(bs)
+		case http.MethodPost, http.MethodPut, http.MethodPatch:
+			var body io.Reader
+			switch v := param.Payload.(type) {
+			case string:
+				body = bytes.NewBufferString(v)
+			case []byte:
+				body = bytes.NewBuffer(v)
+			case io.Reader:
+				body = v
+			default:
+				body, err = c.encoder.f(ctx, param.Payload)
+				if err != nil {
+					return
+				}
+				c.encoder.hs(req.Header)
+			}
+			req, err = http.NewRequestWithContext(ctx, method, addr, body)
+			if err != nil {
+				return
+			}
+		}
+	} else {
+		req, err = http.NewRequestWithContext(ctx, method, addr, nil)
+		if err != nil {
+			return
 		}
 	}
-
-	req, err := http.NewRequestWithContext(ctx, method, rawUrl, &buf)
-	if err != nil {
-		return
-	}
-
-	for k, vs := range header {
-		for _, v := range vs {
-			req.Header.Add(k, v)
+	if param.Header != nil {
+		for k, vs := range param.Header {
+			for _, v := range vs {
+				req.Header.Add(k, v)
+			}
 		}
 	}
-	resp, err := c.innerClient.Do(req)
-	if err != nil {
-		return
-	}
-
-	code = resp.StatusCode
-	respHeader = resp.Header
-	respBody = resp.Body
-	return
+	return c.innerClient.Do(req)
 }
 
-func (c *Client) handle(
-	ctx context.Context,
-	method, rawUrl string,
-	payload any,
-	header http.Header,
-	result any,
-	isDecode bool,
-) (code int, respHeader http.Header, respBody []byte, err error) {
-	code, respHeader, resp, err := c.Do(ctx, method, rawUrl, header, payload)
+// 传入result, 则使用decoder进行解码，respBody将会返回空值
+// 反之result为nil, respBody将会返回原始数据
+func (c *Client) handle(ctx context.Context, method, addr string, result any, ps ...Param) (resp *Response, err error) {
+	rp, err := c.do(ctx, method, addr, ps...)
 	if err != nil {
 		return
 	}
-	defer resp.Close()
+	defer rp.Body.Close()
 
-	respBody, err = io.ReadAll(resp)
+	resp = new(Response)
+
+	resp.Code = rp.StatusCode
+	resp.Header = rp.Header
+	resp.Cookies = rp.Cookies()
+
+	resp.Body, err = io.ReadAll(rp.Body)
 	if err != nil {
 		return
 	}
 
-	if isDecode {
-		err = c.decoder(ctx, bytes.NewBuffer(respBody), result)
+	if result != nil {
+		if c.decoder == nil {
+			err = errors.New("decoder is nil")
+			return
+		}
+		err = c.decoder(ctx, bytes.NewBuffer(resp.Body), result)
 		if err != nil {
-			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, respBody)
+			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, resp.Body)
 		}
 	}
 	return

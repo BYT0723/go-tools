@@ -5,21 +5,37 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
+	"io"
+	"net/http"
 )
 
-type Encoder func(context.Context, any) ([]byte, error)
+type Encoder struct {
+	hs func(http.Header)
+	f  func(context.Context, any) (io.Reader, error)
+}
 
 func JsonEncoder() Encoder {
-	return func(ctx context.Context, payload any) ([]byte, error) {
-		return json.Marshal(payload)
+	return Encoder{
+		hs: func(h http.Header) {
+			h.Set("Content-Type", "application/json")
+		},
+		f: func(ctx context.Context, payload any) (io.Reader, error) {
+			var buf bytes.Buffer
+			err := json.NewEncoder(&buf).Encode(payload)
+			return &buf, err
+		},
 	}
 }
 
 func GobEncoder() Encoder {
-	return func(ctx context.Context, payload any) ([]byte, error) {
-		var buf bytes.Buffer
-		defer buf.Reset()
-		err := gob.NewEncoder(&buf).Encode(payload)
-		return buf.Bytes(), err
+	return Encoder{
+		hs: func(h http.Header) {
+			h.Set("Content-Type", "application/gob")
+		},
+		f: func(ctx context.Context, payload any) (io.Reader, error) {
+			var buf bytes.Buffer
+			err := gob.NewEncoder(&buf).Encode(payload)
+			return &buf, err
+		},
 	}
 }
