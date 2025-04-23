@@ -5,10 +5,11 @@ import (
 	"strconv"
 
 	"github.com/BYT0723/go-tools/monitor"
+	"github.com/BYT0723/go-tools/transport/httpx"
 )
 
-func CodeEqual(code int) monitor.AlertRule[Statistics] {
-	return func(s *Statistics) (*monitor.Alert, bool) {
+func CodeEqual(code int) monitor.AlertRule[httpx.Response] {
+	return func(s *httpx.Response) (*monitor.Alert, bool) {
 		if s.Code == code {
 			return monitor.NewAlert(
 				monitor.SeverityError,
@@ -21,8 +22,8 @@ func CodeEqual(code int) monitor.AlertRule[Statistics] {
 	}
 }
 
-func CodeNotEqual(code int) monitor.AlertRule[Statistics] {
-	return func(s *Statistics) (*monitor.Alert, bool) {
+func CodeNotEqual(code int) monitor.AlertRule[httpx.Response] {
+	return func(s *httpx.Response) (*monitor.Alert, bool) {
 		if s.Code != code {
 			return monitor.NewAlert(
 				monitor.SeverityError,
@@ -35,8 +36,8 @@ func CodeNotEqual(code int) monitor.AlertRule[Statistics] {
 	}
 }
 
-func HeaderContains(key, value string) monitor.AlertRule[Statistics] {
-	return func(s *Statistics) (*monitor.Alert, bool) {
+func HeaderContains(key, value string) monitor.AlertRule[httpx.Response] {
+	return func(s *httpx.Response) (*monitor.Alert, bool) {
 		if slices.Contains(s.Header[key], value) {
 			return monitor.NewAlert(
 				monitor.SeverityError,
@@ -49,8 +50,8 @@ func HeaderContains(key, value string) monitor.AlertRule[Statistics] {
 	}
 }
 
-func HeaderNotContains(key, value string) monitor.AlertRule[Statistics] {
-	return func(s *Statistics) (*monitor.Alert, bool) {
+func HeaderNotContains(key, value string) monitor.AlertRule[httpx.Response] {
+	return func(s *httpx.Response) (*monitor.Alert, bool) {
 		if !slices.Contains(s.Header[key], value) {
 			return monitor.NewAlert(
 				monitor.SeverityError,

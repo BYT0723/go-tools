@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/BYT0723/go-tools/monitor"
+	"github.com/BYT0723/go-tools/transport/httpx"
 )
 
 func TestHttpMonitor(t *testing.T) {
 	m := NewMonitor(http.MethodGet, "https://www.baidu.com", WithTimeout(5*time.Second))
 	m.SetCycle(10 * time.Second)
-	m.AddAlertRule(func(s *Statistics) (*monitor.Alert, bool) {
+	m.AddAlertRule(func(s *httpx.Response) (*monitor.Alert, bool) {
 		fmt.Println(s.Code, s.Header)
 		if s.Code != http.StatusOK {
 			return monitor.NewAlert(

@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"crypto/tls"
-	"io"
 	"net/http"
 	"time"
 
@@ -17,21 +16,14 @@ var _ monitor.Monitor = (*Monitor)(nil)
 type (
 	Monitor struct {
 		*component.MonitorComponent
-		component.AlertComponent[Statistics]
+		component.AlertComponent[httpx.Response]
 
-		client  *httpx.Client
-		decoder httpx.Decoder
+		client *httpx.Client
 
 		method  string
 		addr    string
 		header  http.Header
 		payload any
-	}
-	Statistics struct {
-		Code    int
-		Header  http.Header
-		Resp    []byte
-		Payload map[string]any
 	}
 	Option func(*Monitor)
 )
@@ -97,28 +89,14 @@ func (m *Monitor) Start(ctx context.Context) {
 	}()
 }
 
-func (m *Monitor) do() (*Statistics, error) {
+func (m *Monitor) do() (*httpx.Response, error) {
 	ctx, cf := context.WithTimeout(context.Background(), m.Timeout)
 	defer cf()
-	code, header, rc, err := m.client.Do(ctx, m.method, m.addr, m.header, m.payload)
-	if err != nil {
-		return nil, err
-	}
-	defer rc.Close()
-
-	b, err := io.ReadAll(rc)
-	if err != nil {
-		return nil, err
-	}
-
-	stats := &Statistics{Code: code, Header: header, Resp: b}
-
-	if m.decoder != nil {
-		payload := make(map[string]any)
-		if err := m.decoder(ctx, rc, &payload); err == nil {
-			stats.Payload = payload
-		}
-	}
-
-	return stats, nil
+	return m.client.Do(
+		ctx,
+		m.method,
+		m.addr,
+		httpx.WithHeader(m.header),
+		httpx.WithPayload(m.payload),
+	)
 }
