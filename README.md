@@ -1,6 +1,8 @@
-# go-tools
+#  go-tools
+> a commonly used golang sdk package
 
-a commonly used golang sdk package
+<img src="./icon.png" width="200"/>
+
 
 ## modules
   - `cfg`: Load configurations from local files or etcd using `vipper`
