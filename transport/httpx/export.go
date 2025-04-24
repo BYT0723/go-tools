@@ -2,47 +2,76 @@ package httpx
 
 import (
 	"context"
-	"time"
+	"fmt"
+	"net/http"
+	"reflect"
 )
 
-var defaultClient = NewClient()
+var DefaultClient = NewClient()
 
+// Get sends a GET request using DefaultClient to the given rawUrl.
+//
+// The optional params (ps) may include headers, payload, etc.
 func Get(rawUrl string, ps ...Param) (*Response, error) {
-	return defaultClient.Get(context.Background(), rawUrl, ps...)
+	return DefaultClient.Get(context.Background(), rawUrl, ps...)
 }
 
+// Getx is the context-aware version of Get.
 func Getx(ctx context.Context, rawUrl string, ps ...Param) (*Response, error) {
-	return defaultClient.Get(ctx, rawUrl, ps...)
+	return DefaultClient.Get(ctx, rawUrl, ps...)
 }
 
-func GetAny[T any](rawUrl string, ps ...Param) (*Response, *T, error) {
-	obj := new(T)
-	resp, err := defaultClient.GetAny(context.Background(), rawUrl, obj, ps...)
-	return resp, obj, err
+// GetAny sends a GET request using DefaultClient and decodes the response
+// body into a value of type T using the Client's decoder.
+func GetAny[T any](rawUrl string, ps ...Param) (*Response, T, error) {
+	return handleAny[T](context.Background(), http.MethodGet, rawUrl, ps...)
 }
 
-func GetxAny[T any](ctx context.Context, rawUrl string, ps ...Param) (*Response, *T, error) {
-	obj := new(T)
-	resp, err := defaultClient.GetAny(ctx, rawUrl, obj, ps...)
-	return resp, obj, err
+// GetxAny is the context-aware version of GetAny.
+func GetxAny[T any](ctx context.Context, rawUrl string, ps ...Param) (*Response, T, error) {
+	return handleAny[T](ctx, http.MethodGet, rawUrl, ps...)
 }
 
+// Post sends a POST request using DefaultClient to the given rawUrl.
 func Post(rawUrl string, ps ...Param) (*Response, error) {
-	return defaultClient.Post(context.Background(), rawUrl, ps...)
+	return DefaultClient.Post(context.Background(), rawUrl, ps...)
 }
 
+// Postx is the context-aware version of Post.
 func Postx(ctx context.Context, rawUrl string, ps ...Param) (*Response, error) {
-	return defaultClient.Post(ctx, rawUrl, ps...)
+	return DefaultClient.Post(ctx, rawUrl, ps...)
 }
 
-func PostAny[T any](rawUrl string, timeout time.Duration, ps ...Param) (*Response, *T, error) {
-	obj := new(T)
-	resp, err := defaultClient.PostAny(context.Background(), rawUrl, obj, ps...)
-	return resp, obj, err
+// PostAny sends a POST request using DefaultClient and decodes the response
+// body into a value of type T using the Client's decoder.
+func PostAny[T any](rawUrl string, ps ...Param) (*Response, T, error) {
+	return handleAny[T](context.Background(), http.MethodPost, rawUrl, ps...)
 }
 
-func PostxAny[T any](ctx context.Context, rawUrl string, timeout time.Duration, ps ...Param) (*Response, *T, error) {
-	obj := new(T)
-	resp, err := defaultClient.PostAny(ctx, rawUrl, obj, ps...)
-	return resp, obj, err
+// PostxAny is the context-aware version of PostAny.
+func PostxAny[T any](ctx context.Context, rawUrl string, ps ...Param) (*Response, T, error) {
+	return handleAny[T](ctx, http.MethodPost, rawUrl, ps...)
+}
+
+func handleAny[T any](ctx context.Context, method, rawUrl string, ps ...Param) (resp *Response, obj T, err error) {
+	t := reflect.TypeOf(obj)
+
+	switch t.Kind() {
+	case reflect.Map:
+		obj = reflect.MakeMap(t).Interface().(T)
+	case reflect.Ptr:
+		et := t.Elem()
+		if et.Kind() == reflect.Struct {
+			obj = reflect.New(et).Interface().(T)
+		} else {
+			return nil, obj, fmt.Errorf("expected a pointer to struct, but got %s", et.Kind())
+		}
+		resp, err = DefaultClient.handle(ctx, method, rawUrl, obj, ps...)
+		return
+	case reflect.Chan, reflect.Func:
+		return nil, obj, fmt.Errorf("%s are not allowed", t.Kind())
+	}
+
+	resp, err = DefaultClient.handle(ctx, method, rawUrl, &obj, ps...)
+	return
 }

@@ -13,13 +13,13 @@ import (
 
 type (
 	Client struct {
-		encoder     Encoder
-		decoder     Decoder
-		innerClient *http.Client
+		encoder Encoder
+		decoder Decoder
+		cli     *http.Client
 	}
-	Request struct {
-		Header  http.Header
-		Payload any
+	request struct {
+		header  http.Header
+		payload any
 	}
 	Response struct {
 		Code    int
@@ -31,9 +31,9 @@ type (
 
 func NewClient(opts ...Option) *Client {
 	c := &Client{
-		encoder:     JsonEncoder(),
-		decoder:     JsonDecoder(),
-		innerClient: &http.Client{},
+		encoder: JsonEncoder(),
+		decoder: JsonDecoder(),
+		cli:     &http.Client{},
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -64,13 +64,13 @@ func (c *Client) Do(ctx context.Context, method, addr string, ps ...Param) (resp
 func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp *http.Response, err error) {
 	var (
 		req   *http.Request
-		param = &Request{}
+		param = &request{}
 	)
 	for _, p := range ps {
 		p(param)
 	}
 
-	if param.Payload != nil {
+	if param.payload != nil {
 		switch method {
 		case http.MethodGet, http.MethodHead, http.MethodDelete:
 			var u *url.URL
@@ -80,8 +80,8 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			}
 			var (
 				query = u.Query()
-				t     = reflect.TypeOf(param.Payload)
-				v     = reflect.ValueOf(param.Payload)
+				t     = reflect.TypeOf(param.payload)
+				v     = reflect.ValueOf(param.payload)
 			)
 			switch t.Kind() {
 			case reflect.Struct:
@@ -136,7 +136,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			}
 		case http.MethodPost, http.MethodPut, http.MethodPatch:
 			var body io.Reader
-			switch v := param.Payload.(type) {
+			switch v := param.payload.(type) {
 			case string:
 				body = bytes.NewBufferString(v)
 			case []byte:
@@ -144,7 +144,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			case io.Reader:
 				body = v
 			default:
-				body, err = c.encoder.f(ctx, param.Payload)
+				body, err = c.encoder.f(ctx, param.payload)
 				if err != nil {
 					return
 				}
@@ -161,14 +161,14 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			return
 		}
 	}
-	if param.Header != nil {
-		for k, vs := range param.Header {
+	if param.header != nil {
+		for k, vs := range param.header {
 			for _, v := range vs {
 				req.Header.Add(k, v)
 			}
 		}
 	}
-	return c.innerClient.Do(req)
+	return c.cli.Do(req)
 }
 
 // 传入result, 则使用decoder进行解码，respBody将会返回空值
