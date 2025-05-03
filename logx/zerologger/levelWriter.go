@@ -15,7 +15,7 @@ type LevelWriter struct {
 
 func (w *LevelWriter) WriteLevel(level zerolog.Level, p []byte) (n int, err error) {
 	if w.filter(level) {
-		return w.Writer.Write(p)
+		return w.Write(p)
 	}
 	return len(p), nil
 }

@@ -59,7 +59,11 @@ func (m *AlertComponent[T]) Evaluate(s *T) []*monitor.Alert {
 	// Iterate over each rule and check if it triggers
 	for _, ar := range m.rules {
 		// Evaluate the rule
-		if a, b := ar.rule(s); b {
+		a, matched := ar.rule(s)
+		if !matched {
+			continue
+		}
+		if a != nil {
 			// Increment the trigger counter
 			ar.counter++
 			// If the rule has been triggered enough times, check the alert conditions

@@ -35,7 +35,8 @@ type Alert struct {
 
 // AlertRule defines a function type that processes a specific type of input and
 // generates an alert if applicable.
-type AlertRule[T any] func(*T) (*Alert, bool)
+// Bool indicates whether the change rule matches the corresponding data. Returning false will clear the alarm counter
+type AlertRule[T any] func(payload *T) (alert *Alert, matched bool)
 
 // InternalAlert creates an internal error alert with the given error.
 func InternalAlert(err error) *Alert {
