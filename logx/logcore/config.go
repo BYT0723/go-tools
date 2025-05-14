@@ -45,21 +45,17 @@ func (c *LoggerConf) Merge(cfg *LoggerConf) {
 	if cfg.Level != "" {
 		c.Level = cfg.Level
 	}
-	if cfg.Single {
-		c.Single = cfg.Single
-	}
-	if cfg.MaxBackups != 0 {
+	if cfg.MaxBackups > 0 {
 		c.MaxBackups = cfg.MaxBackups
 	}
-	if cfg.MaxSize != 0 {
+	if cfg.MaxSize > 0 {
 		c.MaxSize = cfg.MaxSize
 	}
-	if cfg.MaxAge != 0 {
+	if cfg.MaxAge > 0 {
 		c.MaxAge = cfg.MaxAge
 	}
-	if cfg.Console {
-		c.Console = cfg.Console
-	}
+	c.Single = cfg.Single
+	c.Console = cfg.Console
 }
 
 func DefaultLoggerConf() *LoggerConf {
