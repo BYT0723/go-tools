@@ -6,6 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
+	github.com/andybalholm/brotli v1.1.1
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/mitchellh/mapstructure v1.5.0
@@ -17,6 +18,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/viper v1.18.2
 	go.uber.org/zap v1.21.0
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/net v0.38.0
 	golang.org/x/text v0.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -68,7 +70,6 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.11.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect

@@ -9,6 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+
+	"github.com/BYT0723/go-tools/transport/httpx/decoder"
+	"github.com/BYT0723/go-tools/transport/httpx/encoder"
+	"golang.org/x/exp/maps"
 )
 
 type (
@@ -22,17 +26,23 @@ type (
 		payload any
 	}
 	Response struct {
-		Code    int
-		Header  http.Header
-		Cookies []*http.Cookie
-		Body    []byte
+		Code   int
+		Header http.Header
+		Body   []byte
+	}
+	Encoder interface {
+		RequestHeader() http.Header
+		Encode(any) (io.Reader, error)
+	}
+	Decoder interface {
+		Decode(io.Reader, http.Header, any) error
 	}
 )
 
 func NewClient(opts ...Option) *Client {
 	c := &Client{
-		encoder: JsonEncoder(),
-		decoder: JsonDecoder(),
+		encoder: encoder.JsonEncoder(),
+		decoder: decoder.DefaultDecoder(),
 		cli:     &http.Client{},
 	}
 	for _, opt := range opts {
@@ -135,7 +145,10 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 				return
 			}
 		case http.MethodPost, http.MethodPut, http.MethodPatch:
-			var body io.Reader
+			var (
+				body io.Reader
+				eh   bool
+			)
 			switch v := param.payload.(type) {
 			case string:
 				body = bytes.NewBufferString(v)
@@ -144,15 +157,18 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			case io.Reader:
 				body = v
 			default:
-				body, err = c.encoder.f(ctx, param.payload)
+				body, err = c.encoder.Encode(param.payload)
 				if err != nil {
 					return
 				}
-				c.encoder.hs(req.Header)
+				eh = true
 			}
 			req, err = http.NewRequestWithContext(ctx, method, addr, body)
 			if err != nil {
 				return
+			}
+			if eh {
+				maps.Copy(req.Header, c.encoder.RequestHeader())
 			}
 		}
 	} else {
@@ -162,11 +178,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 		}
 	}
 	if param.header != nil {
-		for k, vs := range param.header {
-			for _, v := range vs {
-				req.Header.Add(k, v)
-			}
-		}
+		maps.Copy(req.Header, param.header)
 	}
 	return c.cli.Do(req)
 }
@@ -184,7 +196,6 @@ func (c *Client) handle(ctx context.Context, method, addr string, result any, ps
 
 	resp.Code = rp.StatusCode
 	resp.Header = rp.Header
-	resp.Cookies = rp.Cookies()
 
 	resp.Body, err = io.ReadAll(rp.Body)
 	if err != nil {
@@ -196,7 +207,7 @@ func (c *Client) handle(ctx context.Context, method, addr string, result any, ps
 			err = errors.New("decoder is nil")
 			return
 		}
-		err = c.decoder(ctx, bytes.NewBuffer(resp.Body), result)
+		err = c.decoder.Decode(bytes.NewBuffer(resp.Body), rp.Header, result)
 		if err != nil {
 			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, resp.Body)
 		}

@@ -9,7 +9,8 @@ type BinaryFunction func(x, y float64) bool
 // 爱心
 func Love() BinaryFunction {
 	return func(x, y float64) bool {
-		return math.Pow(math.Pow(x, 2)+math.Pow(y, 2)-1, 3)-math.Pow(x, 2)*math.Pow(y, 3) <= 0
+		n := (x * x) + (y * y) - 1
+		return n*n*n-(x*x)*(y*y*y) <= 0
 	}
 }
 
