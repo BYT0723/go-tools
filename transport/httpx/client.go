@@ -2,6 +2,8 @@ package httpx
 
 import (
 	"bytes"
+	"compress/flate"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/BYT0723/go-tools/transport/httpx/decoder"
 	"github.com/BYT0723/go-tools/transport/httpx/encoder"
+	"github.com/andybalholm/brotli"
 	"golang.org/x/exp/maps"
 )
 
@@ -197,9 +200,37 @@ func (c *Client) handle(ctx context.Context, method, addr string, result any, ps
 	resp.Code = rp.StatusCode
 	resp.Header = rp.Header
 
-	resp.Body, err = io.ReadAll(rp.Body)
-	if err != nil {
-		return
+	switch rp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err2 := gzip.NewReader(rp.Body)
+		if err2 != nil {
+			err = fmt.Errorf("gzip decode failed: %w", err2)
+			return
+		}
+		defer reader.Close()
+
+		resp.Body, err = io.ReadAll(reader)
+		if err != nil {
+			return
+		}
+	case "deflate":
+		reader := flate.NewReader(rp.Body)
+		defer reader.Close()
+
+		resp.Body, err = io.ReadAll(reader)
+		if err != nil {
+			return
+		}
+	case "br":
+		resp.Body, err = io.ReadAll(brotli.NewReader(rp.Body))
+		if err != nil {
+			return
+		}
+	default:
+		resp.Body, err = io.ReadAll(rp.Body)
+		if err != nil {
+			return
+		}
 	}
 
 	if result != nil {
@@ -207,7 +238,7 @@ func (c *Client) handle(ctx context.Context, method, addr string, result any, ps
 			err = errors.New("decoder is nil")
 			return
 		}
-		err = c.decoder.Decode(bytes.NewBuffer(resp.Body), rp.Header, result)
+		err = c.decoder.Decode(bytes.NewBuffer(resp.Body), resp.Header, result)
 		if err != nil {
 			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, resp.Body)
 		}
