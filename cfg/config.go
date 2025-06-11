@@ -3,6 +3,7 @@ package cfg
 import (
 	"sync"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
@@ -33,13 +34,13 @@ func Init(opts ...Option) {
 		config = &_config{
 			viper: viper.New(),
 		}
+		config.decodeOpts = append(config.decodeOpts, func(dc *mapstructure.DecoderConfig) {
+			dc.TagName = "cfg"
+		})
 
 		for _, opt := range opts {
 			opt(config)
 		}
-
-		defer func() {
-		}()
 
 		var err error
 		if config.initStatus&remote == remote {
