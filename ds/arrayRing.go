@@ -1,7 +1,10 @@
 package ds
 
+import "iter"
+
 var _ Ring[int] = (*ArrayRing[int])(nil)
 
+// ArrayRing Non-concurrency-safe Ring
 type ArrayRing[T any] struct {
 	data []T
 	size int
@@ -33,6 +36,29 @@ func (r *ArrayRing[T]) Peek() (value T) {
 		return r.data[r.next]
 	} else {
 		return r.data[0]
+	}
+}
+
+func (r *ArrayRing[T]) Iterator() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		if r.full {
+			for i := r.next; i < r.size; i++ {
+				if !yield(r.data[i]) {
+					return
+				}
+			}
+			for i := 0; i < r.next; i++ {
+				if !yield(r.data[i]) {
+					return
+				}
+			}
+		} else {
+			for i := 0; i < r.next; i++ {
+				if !yield(r.data[i]) {
+					return
+				}
+			}
+		}
 	}
 }
 
