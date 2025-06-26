@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/BYT0723/go-tools/funny/graph/functions"
-	"github.com/BYT0723/go-tools/system"
+	"github.com/BYT0723/go-tools/osx"
 )
 
 type Graph struct {
@@ -15,7 +15,7 @@ type Graph struct {
 }
 
 func (g *Graph) Draw(fc functions.BinaryFunction) error {
-	size, err := system.GetTermSize()
+	size, err := osx.GetTermSize()
 	if err != nil {
 		return err
 	}

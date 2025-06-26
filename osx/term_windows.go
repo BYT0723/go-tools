@@ -1,6 +1,6 @@
 //go:build windows
 
-package system
+package osx
 
 import "golang.org/x/sys/windows"
 
