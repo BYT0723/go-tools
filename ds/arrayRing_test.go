@@ -19,7 +19,6 @@ func TestArrayRingBasic(t *testing.T) {
 
 	require.Equal(t, 3, r.Len())
 	require.Equal(t, []int{1, 2, 3}, r.Values())
-	require.Equal(t, 1, r.Peek())
 
 	// 插入 2 个，刚好填满
 	r.Push(4)
@@ -27,7 +26,6 @@ func TestArrayRingBasic(t *testing.T) {
 
 	require.Equal(t, 5, r.Len())
 	require.Equal(t, []int{1, 2, 3, 4, 5}, r.Values())
-	require.Equal(t, 1, r.Peek())
 
 	// 插入 2 个，触发覆盖（环回）
 	r.Push(6)
@@ -35,7 +33,6 @@ func TestArrayRingBasic(t *testing.T) {
 
 	require.Equal(t, 5, r.Len())
 	require.Equal(t, []int{3, 4, 5, 6, 7}, r.Values())
-	require.Equal(t, 3, r.Peek()) // next == 2，Peek 返回的是 data[2]
 }
 
 func TestArrayRingWrapAround(t *testing.T) {
@@ -51,7 +48,4 @@ func TestArrayRingWrapAround(t *testing.T) {
 	r.Push("d")
 
 	require.Equal(t, []string{"b", "c", "d"}, r.Values())
-
-	// Peek 是最旧的，即 b
-	require.Equal(t, "b", r.Peek())
 }

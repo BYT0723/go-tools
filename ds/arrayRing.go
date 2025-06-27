@@ -17,6 +17,9 @@ func NewArrayRing[T any]() *ArrayRing[T] {
 }
 
 func NewArrayRingWithSize[T any](size int) *ArrayRing[T] {
+	if size <= 0 {
+		size = DefaultRingSize
+	}
 	return &ArrayRing[T]{
 		data: make([]T, size),
 		size: size,
@@ -28,14 +31,6 @@ func (r *ArrayRing[T]) Push(value T) {
 	r.next = (r.next + 1) % r.size
 	if r.next == 0 {
 		r.full = true
-	}
-}
-
-func (r *ArrayRing[T]) Peek() (value T) {
-	if r.full {
-		return r.data[r.next]
-	} else {
-		return r.data[0]
 	}
 }
 
@@ -66,12 +61,9 @@ func (r *ArrayRing[T]) Values() []T {
 	var result []T
 	if r.full {
 		result = make([]T, r.size)
-		for i, v := range r.data {
-			if i < r.next {
-				result[i-r.next+r.size] = v
-			} else {
-				result[i-r.next] = v
-			}
+		for i := 0; i < r.size; i++ {
+			index := (r.next + i) % r.size
+			result[i] = r.data[index]
 		}
 	} else {
 		result = make([]T, r.next)
@@ -86,4 +78,8 @@ func (r *ArrayRing[T]) Len() int {
 	} else {
 		return r.next
 	}
+}
+
+func (r *ArrayRing[T]) Cap() int {
+	return r.size
 }
