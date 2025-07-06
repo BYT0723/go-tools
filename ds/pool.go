@@ -6,19 +6,19 @@ import (
 )
 
 type (
-	NewFunc[K, V any]  func(ctx context.Context, key K) (V, error)
-	IDFunc[K any]      func(key K) string
-	DestroyFunc[V any] func(ctx context.Context, value V) error
-	Pool[K, V any]     struct {
-		New        NewFunc[K, V]
-		Identifier IDFunc[K]
-		Destroy    DestroyFunc[V]
+	Pool[K, V any] struct {
+		New        poolNewFunc[K, V]
+		Identifier poolIDFunc[K]
+		Destroy    poolDestroyFunc[V]
 		entries    SyncMap[string, *poolItem[V]]
 	}
 	poolItem[V any] struct {
 		value  V
 		borrow atomic.Int32
 	}
+	poolNewFunc[K, V any]  func(ctx context.Context, key K) (V, error)
+	poolIDFunc[K any]      func(key K) string
+	poolDestroyFunc[V any] func(ctx context.Context, value V) error
 )
 
 func (p *Pool[K, V]) Get(ctx context.Context, key K) (value V, err error) {
