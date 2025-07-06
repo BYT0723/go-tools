@@ -5,6 +5,24 @@ import (
 	"time"
 )
 
+func TryIn[T any](ch chan<- T, v T) bool {
+	select {
+	case ch <- v:
+		return true
+	default:
+		return false
+	}
+}
+
+func TryOut[T any](ch <-chan T) (v T, ok bool) {
+	select {
+	case v = <-ch:
+		return v, true
+	default:
+		return v, false
+	}
+}
+
 func In[T any](ctx context.Context, ch chan<- T, v T) error {
 	select {
 	case <-ctx.Done():
