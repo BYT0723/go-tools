@@ -5,13 +5,13 @@ import (
 	"sync/atomic"
 )
 
-var _ Hub[int] = (*FastBus[int])(nil)
+var _ Hub[int] = (*FastHub[int])(nil)
 
-// FastBus is a simple in-memory publish-subscribe hub.
+// FastHub is a simple in-memory publish-subscribe hub.
 // It broadcasts each published message to all active subscribers.
-// FastBus does not guarantee message ordering or reliable delivery.
+// FastHub does not guarantee message ordering or reliable delivery.
 // If a subscriber's channel buffer is full, the message is dropped.
-type FastBus[T any] struct {
+type FastHub[T any] struct {
 	bufSize     int
 	subscribers map[uint64]chan T
 	mutex       sync.Mutex
@@ -19,9 +19,9 @@ type FastBus[T any] struct {
 	idGenerator
 }
 
-// NewFastBus creates a new FastBus with the given buffer size for each subscriber.
-func NewFastBus[T any](bufSize int) *FastBus[T] {
-	return &FastBus[T]{
+// NewFastHub creates a new FastBus with the given buffer size for each subscriber.
+func NewFastHub[T any](bufSize int) *FastHub[T] {
+	return &FastHub[T]{
 		subscribers: make(map[uint64]chan T),
 		bufSize:     bufSize,
 	}
@@ -29,7 +29,7 @@ func NewFastBus[T any](bufSize int) *FastBus[T] {
 
 // Subscribe registers a new subscriber and returns its Subscription.
 // If the bus is closed, it returns ErrHubClosed.
-func (b *FastBus[T]) Subscribe() (*Subscription[T], error) {
+func (b *FastHub[T]) Subscribe() (*Subscription[T], error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -58,7 +58,7 @@ func (b *FastBus[T]) Subscribe() (*Subscription[T], error) {
 // Publish broadcasts the given value to all active subscribers.
 // If a subscriber's channel is full, the message is dropped.
 // If the bus is closed, it returns ErrHubClosed.
-func (b *FastBus[T]) Publish(v T) error {
+func (b *FastHub[T]) Publish(v T) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -77,7 +77,7 @@ func (b *FastBus[T]) Publish(v T) error {
 }
 
 // Unsubscribe removes a subscriber from the bus and closes its channel.
-func (b *FastBus[T]) Unsubscribe(s *Subscription[T]) {
+func (b *FastHub[T]) Unsubscribe(s *Subscription[T]) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -93,7 +93,7 @@ func (b *FastBus[T]) Unsubscribe(s *Subscription[T]) {
 
 // Close closes the bus and all active subscriber channels.
 // After closing, Publish and Subscribe will return ErrHubClosed.
-func (b *FastBus[T]) Close() error {
+func (b *FastHub[T]) Close() error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 

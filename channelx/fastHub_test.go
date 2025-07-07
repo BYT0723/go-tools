@@ -9,7 +9,7 @@ import (
 
 func TestFastBus(t *testing.T) {
 	var (
-		b  = NewFastBus[string](10)
+		b  = NewFastHub[string](10)
 		wg sync.WaitGroup
 	)
 
