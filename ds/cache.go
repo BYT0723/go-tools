@@ -17,24 +17,13 @@ type (
 		value      T
 		expireTime time.Time
 	}
-	CacheOpt struct {
-		Expire  time.Duration
-		Cleanup time.Duration
-	}
 )
 
-func NewCache[T any](opt *CacheOpt) *Cache[T] {
+func NewCache[T any](expire, cleanup time.Duration) *Cache[T] {
 	c := &Cache[T]{
 		entries: make(map[string]*entry[T]),
-	}
-
-	if opt != nil {
-		if opt.Expire > 0 {
-			c.expire = opt.Expire
-		}
-		if opt.Cleanup > 0 {
-			c.cleanup = opt.Cleanup
-		}
+		expire:  max(0, expire),
+		cleanup: cleanup,
 	}
 
 	if c.cleanup > 0 {
