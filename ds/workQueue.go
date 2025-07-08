@@ -24,6 +24,9 @@ var (
 
 	// ErrTopicAlreadyExists indicates the topic already exists.
 	ErrTopicAlreadyExists = errors.New("topic already exists")
+
+	// ErrTopicQueueFull indicates the topic queue is full
+	ErrTopicQueueFull = errors.New("topic queue is full")
 )
 
 // NewWorkQueue creates a new WorkQueue with a given channel buffer size.
@@ -71,7 +74,7 @@ func (u *WorkQueue[T]) Publish(topic string, msg T) error {
 		select {
 		case ch <- msg:
 		default:
-			// drop if full
+			return ErrTopicQueueFull
 		}
 		return nil
 	}
