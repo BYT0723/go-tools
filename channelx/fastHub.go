@@ -109,6 +109,12 @@ func (b *FastHub[T]) Close() error {
 	return nil
 }
 
+func (b *FastHub[T]) isEmpty() bool {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	return len(b.subscribers) == 0
+}
+
 // idGenerator provides atomic ID generation for subscribers.
 type idGenerator struct {
 	id uint64
