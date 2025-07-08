@@ -4,7 +4,7 @@ import "sync"
 
 var _ Map[int, int] = (*SyncMap[int, int])(nil)
 
-// Generic wrapper for sync.Map
+// SyncMap Generic wrapper for sync.Map
 type SyncMap[K comparable, V any] struct {
 	entries sync.Map
 }

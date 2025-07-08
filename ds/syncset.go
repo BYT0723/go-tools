@@ -2,118 +2,123 @@ package ds
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 )
 
 type (
+	// SyncSet is a thread-safe set implementation for comparable types.
 	SyncSet[T comparable] struct {
-		entries sync.Map
+		mutex   sync.RWMutex
+		entries map[T]struct{}
 	}
 )
 
+// Ensure SyncSet implements Set[int] interface (assumed to exist).
 var _ Set[int] = (*SyncSet[int])(nil)
 
-// Create a new Set with element type T
+// NewSyncSet creates a new SyncSet and optionally adds initial items.
 func NewSyncSet[T comparable](items ...T) *SyncSet[T] {
-	var result SyncSet[T]
+	result := &SyncSet[T]{
+		entries: make(map[T]struct{}),
+	}
 	result.Append(items...)
-	return &result
+	return result
 }
 
-// 集合长度
+// Len returns the number of elements in the set.
 func (s *SyncSet[T]) Len() int {
-	var n int
-	s.entries.Range(func(key, value any) bool {
-		n++
-		return true
-	})
-	return n
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return len(s.entries)
 }
 
+// String returns the string representation of the set's elements.
 func (s *SyncSet[T]) String() string {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	return fmt.Sprint(s.Values())
 }
 
-// 添加元素
+// Append adds one or more elements to the set. Duplicates are ignored.
 func (s *SyncSet[T]) Append(values ...T) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if s.entries == nil {
+		s.entries = make(map[T]struct{})
+	}
 	for _, v := range values {
-		s.entries.Store(v, struct{}{})
+		s.entries[v] = struct{}{}
 	}
 }
 
-// 移除元素
+// Remove deletes one or more elements from the set. Non-existent elements are ignored.
 func (s *SyncSet[T]) Remove(values ...T) bool {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	for _, v := range values {
-		s.entries.Delete(v)
+		delete(s.entries, v)
 	}
 	return true
 }
 
-// 判断元素是否存在
+// Contains reports whether the set contains the specified element.
 func (s *SyncSet[T]) Contains(v T) bool {
-	_, ok := s.entries.Load(v)
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	_, ok := s.entries[v]
 	return ok
 }
 
-// 集合元素的切片
+// Values returns a slice containing all elements in the set (unordered).
 func (s *SyncSet[T]) Values() []T {
-	var result []T
-	s.entries.Range(func(key, _ any) bool {
-		if v, ok := key.(T); ok {
-			result = append(result, v)
-		}
-		return true
-	})
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return slices.Collect(maps.Keys(s.entries))
+}
+
+// Union returns a new set containing all elements from the current set and another set.
+func (s *SyncSet[T]) Union(s1 Set[T]) Set[T] {
+	result := NewSyncSet[T](s.Values()...)
+	result.Append(s1.Values()...)
 	return result
 }
 
-// 并集
-func (s *SyncSet[T]) Union(s1 Set[T]) Set[T] {
-	var result SyncSet[T]
-	for _, v := range s.Values() {
-		result.entries.Store(v, struct{}{})
-	}
-	for _, v := range s1.Values() {
-		result.entries.Store(v, struct{}{})
-	}
-	return &result
-}
-
-// 交集
+// Intersection returns a new set containing elements present in both sets.
 func (s *SyncSet[T]) Intersection(s1 Set[T]) Set[T] {
-	var result SyncSet[T]
+	result := NewSyncSet[T]()
 	for _, v := range s.Values() {
 		if s1.Contains(v) {
-			result.entries.Store(v, struct{}{})
+			result.Append(v)
 		}
 	}
-	return &result
+	return result
 }
 
-// 差集
+// Difference returns a new set containing elements in the current set but not in the other.
 func (s *SyncSet[T]) Difference(s1 Set[T]) Set[T] {
-	var result SyncSet[T]
+	result := NewSyncSet[T]()
 	for _, v := range s.Values() {
 		if !s1.Contains(v) {
-			result.entries.Store(v, struct{}{})
+			result.Append(v)
 		}
 	}
-	return &result
+	return result
 }
 
-// 对称差集
+// SymmetricDifference returns a new set containing elements present in either of the sets but not both.
 func (s *SyncSet[T]) SymmetricDifference(s1 Set[T]) Set[T] {
-	var result SyncSet[T]
+	result := NewSyncSet[T]()
 	for _, v := range s.Values() {
 		if !s1.Contains(v) {
-			result.entries.Store(v, struct{}{})
+			result.Append(v)
 		}
 	}
-
 	for _, v := range s1.Values() {
 		if !s.Contains(v) {
-			result.entries.Store(v, struct{}{})
+			result.Append(v)
 		}
 	}
-	return &result
+	return result
 }

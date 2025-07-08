@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestArrayRingBasic(t *testing.T) {
-	r := NewArrayRingWithSize[int](5)
+func TestRingBufferBasic(t *testing.T) {
+	r := NewRingBufferWithSize[int](5)
 
 	require.Equal(t, 0, r.Len())
 	require.Equal(t, []int{}, r.Values())
@@ -35,8 +35,8 @@ func TestArrayRingBasic(t *testing.T) {
 	require.Equal(t, []int{3, 4, 5, 6, 7}, r.Values())
 }
 
-func TestArrayRingWrapAround(t *testing.T) {
-	r := NewArrayRingWithSize[string](3)
+func TestRingBufferWrapAround(t *testing.T) {
+	r := NewRingBufferWithSize[string](3)
 
 	r.Push("a")
 	r.Push("b")

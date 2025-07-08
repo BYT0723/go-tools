@@ -2,31 +2,31 @@ package ds
 
 import "iter"
 
-var _ Ring[int] = (*ArrayRing[int])(nil)
-
-// ArrayRing Non-concurrency-safe Ring
-type ArrayRing[T any] struct {
+// RingBuffer Non-concurrency-safe Ring
+type RingBuffer[T any] struct {
 	data []T
 	size int
 	next int
 	full bool
 }
 
-func NewArrayRing[T any]() *ArrayRing[T] {
-	return NewArrayRingWithSize[T](DefaultRingSize)
+func NewRingBuffer[T any]() *RingBuffer[T] {
+	return NewRingBufferWithSize[T](DefaultRingSize)
 }
 
-func NewArrayRingWithSize[T any](size int) *ArrayRing[T] {
+const DefaultRingSize = 1024
+
+func NewRingBufferWithSize[T any](size int) *RingBuffer[T] {
 	if size <= 0 {
 		size = DefaultRingSize
 	}
-	return &ArrayRing[T]{
+	return &RingBuffer[T]{
 		data: make([]T, size),
 		size: size,
 	}
 }
 
-func (r *ArrayRing[T]) Push(value T) {
+func (r *RingBuffer[T]) Push(value T) {
 	r.data[r.next] = value
 	r.next = (r.next + 1) % r.size
 	if r.next == 0 {
@@ -34,7 +34,7 @@ func (r *ArrayRing[T]) Push(value T) {
 	}
 }
 
-func (r *ArrayRing[T]) Iterator() iter.Seq[T] {
+func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		if r.full {
 			for i := r.next; i < r.size; i++ {
@@ -57,7 +57,7 @@ func (r *ArrayRing[T]) Iterator() iter.Seq[T] {
 	}
 }
 
-func (r *ArrayRing[T]) Values() []T {
+func (r *RingBuffer[T]) Values() []T {
 	var result []T
 	if r.full {
 		result = make([]T, r.size)
@@ -72,7 +72,7 @@ func (r *ArrayRing[T]) Values() []T {
 	return result
 }
 
-func (r *ArrayRing[T]) Len() int {
+func (r *RingBuffer[T]) Len() int {
 	if r.full {
 		return r.size
 	} else {
@@ -80,6 +80,6 @@ func (r *ArrayRing[T]) Len() int {
 	}
 }
 
-func (r *ArrayRing[T]) Cap() int {
+func (r *RingBuffer[T]) Cap() int {
 	return r.size
 }
