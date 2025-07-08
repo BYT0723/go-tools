@@ -1,4 +1,4 @@
-package channelx
+package ds
 
 import (
 	"sync"
@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOrderBus(t *testing.T) {
+func TestFastBus(t *testing.T) {
 	var (
-		b  = NewOrderHub[string](10)
+		b  = NewFastHub[string](10)
 		wg sync.WaitGroup
 	)
 
@@ -20,14 +20,17 @@ func TestOrderBus(t *testing.T) {
 			defer wg.Done()
 			defer b.Unsubscribe(s)
 			v := <-s.C
-			assert.Equal(t, "hello", v)
+			assert.Equal(t, "string1", v)
 			v = <-s.C
-			assert.Equal(t, "my name is walter", v)
+			assert.Equal(t, "string2", v)
+			v = <-s.C
+			assert.Equal(t, "", v)
 		}()
 	}
 
-	b.Publish("hello")
-	b.Publish("my name is walter")
+	b.Publish("string1")
+	b.Publish("string2")
+	b.Publish("")
 
 	b.Close()
 

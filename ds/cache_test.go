@@ -12,7 +12,7 @@ func TestCacheSetAndGet(t *testing.T) {
 	Convey("Cache Set And Get", t, func() {
 		Convey("No Expire Cache", func() {
 			Convey("Set And Get", func() {
-				c := NewCache[any](nil)
+				c := NewCache[any](0, 0)
 
 				c.Set("name", "tyler")
 				c.Set("age", 18)
@@ -26,7 +26,7 @@ func TestCacheSetAndGet(t *testing.T) {
 				So(loaded, ShouldBeTrue)
 			})
 			Convey("Set And ReSet And Get", func() {
-				c := NewCache[any](nil)
+				c := NewCache[any](0, 0)
 
 				c.Set("name", "tyler")
 				c.Set("age", 18)
@@ -54,7 +54,7 @@ func TestCacheSetAndGet(t *testing.T) {
 		})
 		Convey("Expire Cache", func() {
 			Convey("Set And Get", func() {
-				c := NewCache[any](&CacheOpt{Expire: 1 * time.Second})
+				c := NewCache[any](time.Second, 0)
 
 				c.Set("name", "tyler")
 				c.Set("age", 18)
@@ -79,7 +79,7 @@ func TestCacheSetAndGet(t *testing.T) {
 				So(loaded, ShouldBeFalse)
 			})
 			Convey("Set And Reset And Get", func() {
-				c := NewCache[any](&CacheOpt{Expire: 1 * time.Second})
+				c := NewCache[any](time.Second, 0)
 
 				c.Set("name", "tyler")
 				value, loaded := c.Get("name")
@@ -114,7 +114,7 @@ func TestCacheSetAndGet(t *testing.T) {
 			})
 		})
 		Convey("Expire And Cleanup Cache", func() {
-			c := NewCache[any](&CacheOpt{Expire: 1 * time.Second, Cleanup: 3 * time.Second})
+			c := NewCache[any](time.Second, 3*time.Second)
 
 			c.Set("name", "tyler")
 			c.Set("age", 18)
@@ -151,7 +151,7 @@ func TestCacheSetAndGet(t *testing.T) {
 func TestCacheDelete(t *testing.T) {
 	Convey("Cache Set", t, func() {
 		Convey("No Expire Cache", func() {
-			c := NewCache[any](nil)
+			c := NewCache[any](0, 0)
 
 			c.Set("name", "tyler")
 			value, loaded := c.Get("name")
@@ -166,7 +166,7 @@ func TestCacheDelete(t *testing.T) {
 			So(loaded, ShouldBeFalse)
 		})
 		Convey("Expire Cache", func() {
-			c := NewCache[any](&CacheOpt{Expire: 1 * time.Second})
+			c := NewCache[any](time.Second, 0)
 
 			c.Set("name", "tyler")
 			value, loaded := c.Get("name")
@@ -189,7 +189,7 @@ func TestCacheDelete(t *testing.T) {
 			So(loaded, ShouldBeFalse)
 		})
 		Convey("Expire And Cleanup Cache", func() {
-			c := NewCache[any](&CacheOpt{Expire: 1 * time.Second, Cleanup: 3 * time.Second})
+			c := NewCache[any](time.Second, 3*time.Second)
 
 			c.Set("name", "tyler")
 			value, loaded := c.Get("name")
@@ -221,7 +221,7 @@ func TestCacheDelete(t *testing.T) {
 
 func TestCleanupExit(t *testing.T) {
 	Convey("Cache Cleanup Exit", t, func() {
-		c := NewCache[any](&CacheOpt{Expire: time.Second, Cleanup: 3 * time.Second})
+		c := NewCache[any](time.Second, 3*time.Second)
 		c.Set("name", "tyler")
 		c = nil
 		// 强制 GC 多次，确保回收
