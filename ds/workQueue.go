@@ -15,7 +15,6 @@ import (
 type WorkQueue[T any] struct {
 	mutex       sync.Mutex        // protects subscribers map
 	subscribers map[string]chan T // topic name -> channel
-	bufSize     int               // buffer size for each topic channel
 }
 
 var (
@@ -30,23 +29,22 @@ var (
 )
 
 // NewWorkQueue creates a new WorkQueue with a given channel buffer size.
-func NewWorkQueue[T any](bufSize int) *WorkQueue[T] {
+func NewWorkQueue[T any]() *WorkQueue[T] {
 	return &WorkQueue[T]{
 		subscribers: make(map[string]chan T),
-		bufSize:     bufSize,
 	}
 }
 
 // AddTopic creates a new topic with its own buffered channel.
 // Returns an error if the topic already exists.
-func (u *WorkQueue[T]) AddTopic(topic string) error {
+func (u *WorkQueue[T]) AddTopic(topic string, bufSize int) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
 	if _, ok := u.subscribers[topic]; ok {
 		return ErrTopicAlreadyExists
 	}
-	u.subscribers[topic] = make(chan T, u.bufSize)
+	u.subscribers[topic] = make(chan T, bufSize)
 	return nil
 }
 

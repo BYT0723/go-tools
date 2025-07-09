@@ -14,17 +14,49 @@ import (
 type BroadcastBus[T any] struct {
 	mutex       sync.Mutex             // protects subscribers map
 	subscribers map[string]*FastHub[T] // topic -> FastHub
-	bufSize     int                    // buffer size for each subscriber channel
 	closeModule                        // handles closed state
 }
 
 // NewBroadcastBus creates a new BroadcastBus with the given buffer size
 // for each subscriber channel.
-func NewBroadcastBus[T any](bufSize int) *BroadcastBus[T] {
+func NewBroadcastBus[T any]() *BroadcastBus[T] {
 	return &BroadcastBus[T]{
 		subscribers: make(map[string]*FastHub[T]),
-		bufSize:     bufSize,
 	}
+}
+
+// AddTopic creates a new topic with its own buffered channel.
+// Returns an error if the topic already exists.
+func (u *BroadcastBus[T]) AddTopic(topic string, bufSize int) error {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	if err := u.closeCheck(); err != nil {
+		return err
+	}
+
+	if _, ok := u.subscribers[topic]; ok {
+		return ErrTopicAlreadyExists
+	}
+	u.subscribers[topic] = NewFastHub[T](bufSize)
+	return nil
+}
+
+// RemoveTopic closes and removes the topic's channel.
+// Messages in the buffer are dropped.
+func (u *BroadcastBus[T]) RemoveTopic(topic string) error {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	if err := u.closeCheck(); err != nil {
+		return err
+	}
+
+	if ch, ok := u.subscribers[topic]; ok {
+		delete(u.subscribers, topic)
+		return ch.Close()
+	}
+	return ErrTopicNotFound
 }
 
 // Subscribe subscribes to the given topic, creating the topic if needed.
@@ -42,10 +74,8 @@ func (u *BroadcastBus[T]) Subscribe(topic string) (*Subscription[T], error) {
 
 	hub, ok := u.subscribers[topic]
 	if !ok {
-		hub = NewFastHub[T](u.bufSize)
-		u.subscribers[topic] = hub
+		return nil, ErrTopicNotFound
 	}
-
 	return hub.Subscribe()
 }
 
@@ -67,13 +97,6 @@ func (u *BroadcastBus[T]) Unsubscribe(topic string, sub *Subscription[T]) error 
 	}
 
 	hub.Unsubscribe(sub)
-
-	// If the topic has no more subscribers, clean it up.
-	if hub.isEmpty() {
-		hub.Close()
-		delete(u.subscribers, topic)
-	}
-
 	return nil
 }
 
@@ -94,8 +117,7 @@ func (u *BroadcastBus[T]) Publish(topic string, msg T) error {
 		return ErrTopicNotFound
 	}
 
-	hub.Publish(msg)
-	return nil
+	return hub.Publish(msg)
 }
 
 // Close closes all topics and marks the bus as closed.
