@@ -15,7 +15,7 @@ type Graph struct {
 }
 
 func (g *Graph) Draw(fc functions.BinaryFunction) error {
-	size, err := osx.GetTermSize()
+	w, h, err := osx.GetTermSize()
 	if err != nil {
 		return err
 	}
@@ -25,8 +25,8 @@ func (g *Graph) Draw(fc functions.BinaryFunction) error {
 	}
 
 	// 打印爱心形状
-	for row := int(size.Row) / 2; row > 0-int(size.Row)/2; row-- {
-		for col := 0 - int(size.Col)/2; col < int(size.Col)/2; col++ {
+	for row := int(h) / 2; row > 0-int(h)/2; row-- {
+		for col := 0 - int(w)/2; col < int(w)/2; col++ {
 			var (
 				y = float64(row) * g.YScale
 				x = float64(col) * g.XScale

@@ -2,7 +2,9 @@ package osx
 
 import (
 	"errors"
+	"os"
 
+	"golang.org/x/term"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/encoding/japanese"
@@ -11,9 +13,8 @@ import (
 	"golang.org/x/text/encoding/traditionalchinese"
 )
 
-type TermSize struct {
-	Row uint16
-	Col uint16
+func GetTermSize() (w, h int, err error) {
+	return term.GetSize(int(os.Stdout.Fd()))
 }
 
 func CharmapDecode(cp uint32, raw []byte) ([]byte, error) {
