@@ -1,6 +1,8 @@
 package ds
 
 import (
+	"maps"
+	"slices"
 	"sync"
 )
 
@@ -115,4 +117,29 @@ func (m *MutexMap[K, V]) CompareFnAndDelete(key K, fn func(V, V) bool, old V) bo
 	}
 	delete(m.entries, key)
 	return true
+}
+
+func (m *MutexMap[K, V]) Keys() []K {
+	m.l.Lock()
+	defer m.l.Unlock()
+	return slices.Collect(maps.Keys(m.entries))
+}
+
+func (m *MutexMap[K, V]) Values() []V {
+	m.l.Lock()
+	defer m.l.Unlock()
+	return slices.Collect(maps.Values(m.entries))
+}
+
+func (m *MutexMap[K, V]) Filter(filter func(K, V) bool) Map[K, V] {
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	result := NewMutexMap[K, V]()
+	for k, v := range m.entries {
+		if filter(k, v) {
+			result.Store(k, v)
+		}
+	}
+	return result
 }

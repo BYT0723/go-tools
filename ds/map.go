@@ -21,6 +21,14 @@ type Map[K comparable, V any] interface {
 	// 对比并删除
 	// 对比当前map中key对应的value是否等于value，如果相等则删除
 	CompareAndDelete(key K, value V) bool
+	// 对比并交换(自定义比较函数)
 	CompareFnAndSwap(key K, fn func(V, V) bool, old, newValue V) bool
+	// 对比并删除(自定义比较函数)
 	CompareFnAndDelete(key K, fn func(V, V) bool, old V) bool
+	// 键
+	Keys() []K
+	// 值
+	Values() []V
+	// Filter
+	Filter(filter func(K, V) bool) Map[K, V]
 }

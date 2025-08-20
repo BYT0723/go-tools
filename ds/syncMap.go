@@ -94,3 +94,39 @@ func (m *SyncMap[K, V]) CompareFnAndDelete(key K, fn func(V, V) bool, old V) boo
 	m.entries.Delete(key)
 	return true
 }
+
+func (m *SyncMap[K, V]) Keys() []K {
+	var keys []K
+	m.entries.Range(func(key, _ any) bool {
+		if k, ok := key.(K); ok {
+			keys = append(keys, k)
+		}
+		return true
+	})
+	return keys
+}
+
+func (m *SyncMap[K, V]) Values() []V {
+	var values []V
+	m.entries.Range(func(_, value any) bool {
+		if v, ok := value.(V); ok {
+			values = append(values, v)
+		}
+		return true
+	})
+	return values
+}
+
+func (m *SyncMap[K, V]) Filter(filter func(K, V) bool) Map[K, V] {
+	result := NewSyncMap[K, V]()
+
+	m.entries.Range(func(key, value any) bool {
+		k, _ := key.(K)
+		v, _ := value.(V)
+		if filter(k, v) {
+			result.Store(k, v)
+		}
+		return true
+	})
+	return result
+}
