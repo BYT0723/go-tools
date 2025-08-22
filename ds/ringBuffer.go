@@ -1,9 +1,13 @@
 package ds
 
-import "iter"
+import (
+	"iter"
+	"sync"
+)
 
 // RingBuffer Non-concurrency-safe Ring
 type RingBuffer[T any] struct {
+	m    sync.Mutex
 	data []T
 	size int
 	next int
@@ -26,16 +30,23 @@ func NewRingBufferWithSize[T any](size int) *RingBuffer[T] {
 	}
 }
 
-func (r *RingBuffer[T]) Push(value T) {
-	r.data[r.next] = value
-	r.next = (r.next + 1) % r.size
-	if r.next == 0 {
-		r.full = true
+func (r *RingBuffer[T]) Push(values ...T) {
+	r.m.Lock()
+	defer r.m.Unlock()
+	for _, value := range values {
+		r.data[r.next] = value
+		r.next = (r.next + 1) % r.size
+
+		if !r.full && r.next == 0 {
+			r.full = true
+		}
 	}
 }
 
 func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 	return func(yield func(T) bool) {
+		r.m.Lock()
+		defer r.m.Unlock()
 		if r.full {
 			for i := r.next; i < r.size; i++ {
 				if !yield(r.data[i]) {
@@ -58,6 +69,9 @@ func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 }
 
 func (r *RingBuffer[T]) Values() []T {
+	r.m.Lock()
+	defer r.m.Unlock()
+
 	var result []T
 	if r.full {
 		result = make([]T, r.size)
