@@ -25,10 +25,10 @@ func (c *gzipCompressor) Compress(writer io.Writer, src []byte) error {
 	return err
 }
 
-func GZipCompressor() *gzipCompressor {
+func GZipCompressor() gzipCompressor {
 	return GZipCompressorWithLevel(gzip.DefaultCompression)
 }
 
-func GZipCompressorWithLevel(level int) *gzipCompressor {
-	return &gzipCompressor{level: level}
+func GZipCompressorWithLevel(level int) gzipCompressor {
+	return gzipCompressor{level: level}
 }

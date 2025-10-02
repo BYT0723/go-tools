@@ -13,7 +13,7 @@ type jsonEncoder struct {
 	ct         string
 }
 
-func (d *jsonEncoder) RequestHeader() http.Header {
+func (d jsonEncoder) RequestHeader() http.Header {
 	header := http.Header{"Content-Type": []string{d.ct}}
 	if d.compressor != nil {
 		maps.Copy(header, d.RequestHeader())
@@ -21,7 +21,7 @@ func (d *jsonEncoder) RequestHeader() http.Header {
 	return header
 }
 
-func (d *jsonEncoder) Encode(payload any) (io.Reader, error) {
+func (d jsonEncoder) Encode(payload any) (io.Reader, error) {
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(payload)
 	if d.compressor == nil {
@@ -33,14 +33,14 @@ func (d *jsonEncoder) Encode(payload any) (io.Reader, error) {
 	return &cbuf, err
 }
 
-func JsonEncoder() *jsonEncoder {
-	return &jsonEncoder{
+func JSONEncoder() jsonEncoder {
+	return jsonEncoder{
 		ct: "application/json",
 	}
 }
 
-func JsonEncoderWithCompressor(compressor Compressor) *jsonEncoder {
-	return &jsonEncoder{
+func JSONEncoderWithCompressor(compressor Compressor) jsonEncoder {
+	return jsonEncoder{
 		compressor: compressor,
 		ct:         "application/json",
 	}

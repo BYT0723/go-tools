@@ -69,33 +69,33 @@ func handleAny[T any](ctx context.Context, method, rawUrl string, ps ...Param) (
 			return nil, obj, fmt.Errorf("expected a pointer to struct, but got %s", et.Kind())
 		}
 		resp, err = DefaultClient.handle(ctx, method, rawUrl, obj, ps...)
-		return
+		return resp, obj, err
 	case reflect.Chan, reflect.Func:
 		return nil, obj, fmt.Errorf("%s are not allowed", t.Kind())
 	}
 
 	resp, err = DefaultClient.handle(ctx, method, rawUrl, &obj, ps...)
-	return
+	return resp, obj, err
 }
 
 // Download downloads the file from the given url to the given filepath.
 func Download(url string, filepath string) (err error) {
 	f, err := os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		return
+		return err
 	}
 	defer f.Close()
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("status code error: %d", resp.StatusCode)
-		return
+		return err
 	}
 	_, err = io.Copy(f, resp.Body)
-	return
+	return err
 }

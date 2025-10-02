@@ -44,8 +44,8 @@ type (
 
 func NewClient(opts ...Option) *Client {
 	c := &Client{
-		encoder: encoder.JsonEncoder(),
-		decoder: decoder.DefaultDecoder(),
+		encoder: encoder.JSONEncoder(),
+		decoder: decoder.JSONDecoder(),
 		cli:     &http.Client{},
 	}
 	for _, opt := range opts {
@@ -89,7 +89,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			var u *url.URL
 			u, err = url.Parse(addr)
 			if err != nil {
-				return
+				return resp, err
 			}
 			var (
 				query = u.Query()
@@ -117,7 +117,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			case reflect.Map:
 				if t.Key().Kind() != reflect.String {
 					err = errors.New("GET Params Map key type must be string")
-					return
+					return resp, err
 				}
 				for _, k := range v.MapKeys() {
 					value := v.MapIndex(k)
@@ -140,12 +140,12 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 				}
 			default:
 				err = errors.New("GET Params must be Map or Struct")
-				return
+				return resp, err
 			}
 			u.RawQuery = query.Encode()
 			req, err = http.NewRequestWithContext(ctx, method, u.String(), nil)
 			if err != nil {
-				return
+				return resp, err
 			}
 		case http.MethodPost, http.MethodPut, http.MethodPatch:
 			var (
@@ -162,13 +162,13 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 			default:
 				body, err = c.encoder.Encode(param.payload)
 				if err != nil {
-					return
+					return resp, err
 				}
 				eh = true
 			}
 			req, err = http.NewRequestWithContext(ctx, method, addr, body)
 			if err != nil {
-				return
+				return resp, err
 			}
 			if eh {
 				maps.Copy(req.Header, c.encoder.RequestHeader())
@@ -177,7 +177,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 	} else {
 		req, err = http.NewRequestWithContext(ctx, method, addr, nil)
 		if err != nil {
-			return
+			return resp, err
 		}
 	}
 	if param.header != nil {
@@ -191,7 +191,7 @@ func (c *Client) do(ctx context.Context, method, addr string, ps ...Param) (resp
 func (c *Client) handle(ctx context.Context, method, addr string, result any, ps ...Param) (resp *Response, err error) {
 	rp, err := c.do(ctx, method, addr, ps...)
 	if err != nil {
-		return
+		return resp, err
 	}
 	defer rp.Body.Close()
 
@@ -205,13 +205,13 @@ func (c *Client) handle(ctx context.Context, method, addr string, result any, ps
 		reader, err2 := gzip.NewReader(rp.Body)
 		if err2 != nil {
 			err = fmt.Errorf("gzip decode failed: %w", err2)
-			return
+			return resp, err
 		}
 		defer reader.Close()
 
 		resp.Body, err = io.ReadAll(reader)
 		if err != nil {
-			return
+			return resp, err
 		}
 	case "deflate":
 		reader := flate.NewReader(rp.Body)
@@ -219,29 +219,29 @@ func (c *Client) handle(ctx context.Context, method, addr string, result any, ps
 
 		resp.Body, err = io.ReadAll(reader)
 		if err != nil {
-			return
+			return resp, err
 		}
 	case "br":
 		resp.Body, err = io.ReadAll(brotli.NewReader(rp.Body))
 		if err != nil {
-			return
+			return resp, err
 		}
 	default:
 		resp.Body, err = io.ReadAll(rp.Body)
 		if err != nil {
-			return
+			return resp, err
 		}
 	}
 
 	if result != nil {
 		if c.decoder == nil {
 			err = errors.New("decoder is nil")
-			return
+			return resp, err
 		}
 		err = c.decoder.Decode(bytes.NewBuffer(resp.Body), resp.Header, result)
 		if err != nil {
 			err = fmt.Errorf("response decode err: %v, source: \"%s\"", err, resp.Body)
 		}
 	}
-	return
+	return resp, err
 }

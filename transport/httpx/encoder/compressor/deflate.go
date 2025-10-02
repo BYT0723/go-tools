@@ -34,10 +34,10 @@ func (c *deflateCompressor) Compress(writer io.Writer, src []byte) error {
 	return err
 }
 
-func DeflateCompressor(level int) *deflateCompressor {
+func DeflateCompressor(level int) deflateCompressor {
 	return DeflateCompressorWithDict(level, nil)
 }
 
-func DeflateCompressorWithDict(level int, dict []byte) *deflateCompressor {
-	return &deflateCompressor{level: level, dict: dict}
+func DeflateCompressorWithDict(level int, dict []byte) deflateCompressor {
+	return deflateCompressor{level: level, dict: dict}
 }
