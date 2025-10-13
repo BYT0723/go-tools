@@ -28,13 +28,13 @@ func Unzip(src string, dst string) (err error) {
 		fp := filepath.Join(dst, f.Name)
 
 		if f.FileInfo().IsDir() {
-			if err = os.MkdirAll(fp, os.ModePerm); err != nil {
+			if err = os.MkdirAll(fp, f.Mode()); err != nil {
 				return err
 			}
 			continue
 		}
 
-		dstf, err := os.OpenFile(fp, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+		dstf, err := os.OpenFile(fp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, f.Mode())
 		if err != nil {
 			return err
 		}
