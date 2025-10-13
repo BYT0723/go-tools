@@ -16,12 +16,12 @@ func Unzip(src string, dst string) (err error) {
 
 	rc, err := zip.OpenReader(src)
 	if err != nil {
-		return
+		return err
 	}
 	defer rc.Close()
 
 	if err = os.MkdirAll(dst, os.ModePerm); err != nil {
-		return
+		return err
 	}
 
 	for _, f := range rc.File {
@@ -29,7 +29,7 @@ func Unzip(src string, dst string) (err error) {
 
 		if f.FileInfo().IsDir() {
 			if err = os.MkdirAll(fp, os.ModePerm); err != nil {
-				return
+				return err
 			}
 			continue
 		}
