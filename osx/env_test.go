@@ -21,17 +21,17 @@ func TestGetEnv(t *testing.T) {
 			name: "exist key (string)",
 			args: args{
 				key: "HOME",
-				def: "walter",
+				def: "HOME",
 			},
-			want: "/home/walter",
+			want: os.Getenv("HOME"),
 		},
 		{
 			name: "not exist key (string)",
 			args: args{
 				key: "USERNAME",
-				def: "walter",
+				def: "default",
 			},
-			want: "walter",
+			want: "default",
 		},
 		{
 			name: "exist key (int)",
