@@ -17,4 +17,5 @@ type Logger interface {
 	Log(level string, args ...any)
 	Logf(level string, format string, args ...any)
 	Sync() error
+	AddCallerSkip(caller int) Logger
 }

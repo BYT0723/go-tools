@@ -93,7 +93,7 @@ func Fatalf(format string, args ...any) {
 }
 
 func Default() Logger {
-	return defaultLogger
+	return defaultLogger.AddCallerSkip(-1)
 }
 
 func SetDefault(logger Logger) {

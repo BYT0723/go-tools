@@ -17,6 +17,8 @@ type zeroLogger struct {
 	zero zerolog.Logger
 }
 
+var defaultCallerSkip = 4
+
 func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 	level, err := zerolog.ParseLevel(cfg.Level)
 	if err != nil {
@@ -82,7 +84,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 		zero: zerolog.New(zerolog.MultiLevelWriter(writers...)).
 			With().
 			Timestamp().
-			CallerWithSkipFrameCount(4).
+			CallerWithSkipFrameCount(defaultCallerSkip).
 			Logger(),
 	}
 
@@ -95,7 +97,7 @@ func (l *zeroLogger) With(kvs ...logcore.Field) logcore.Logger {
 	for _, v := range kvs {
 		ctx = ctx.Any(v.Key, v.Value)
 	}
-	copy.zero = ctx.Logger().With().CallerWithSkipFrameCount(3).Logger()
+	copy.zero = ctx.Logger().With().CallerWithSkipFrameCount(defaultCallerSkip - 1).Logger()
 	return copy
 }
 
@@ -182,11 +184,17 @@ func (l *zeroLogger) Sync() error {
 }
 
 func (l *zeroLogger) Logger() logcore.Logger {
-	l.zero = l.zero.With().CallerWithSkipFrameCount(3).Logger()
+	l.zero = l.zero.With().CallerWithSkipFrameCount(defaultCallerSkip - 1).Logger()
 	return l
 }
 
 func (l *zeroLogger) clone() *zeroLogger {
 	copy := *l
 	return &copy
+}
+
+func (l *zeroLogger) AddCallerSkip(skip int) logcore.Logger {
+	zl := l.clone()
+	zl.zero = zl.zero.With().CallerWithSkipFrameCount(defaultCallerSkip + skip).Logger()
+	return zl
 }

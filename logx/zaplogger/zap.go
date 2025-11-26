@@ -57,15 +57,14 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 	return
 }
 
-func (logger *zapLogger) With(kvs ...logcore.Field) logcore.Logger {
+func (l *zapLogger) With(kvs ...logcore.Field) logcore.Logger {
 	fields := []zap.Field{}
 	for _, kv := range kvs {
 		fields = append(fields, zap.Any(kv.Key, kv.Value))
 	}
-
-	res := logger.clone()
-	res.zap = res.zap.With(fields...).WithOptions(zap.AddCallerSkip(-1))
-	return res
+	return &zapLogger{
+		zap: l.zap.With(fields...),
+	}
 }
 
 func (l *zapLogger) Debug(args ...any) {
@@ -149,9 +148,9 @@ func (l *zapLogger) Logger() logcore.Logger {
 	return l
 }
 
-func (l *zapLogger) clone() *zapLogger {
-	copy := *l
-	cplog := *copy.zap
-	copy.zap = &cplog
-	return &copy
+func (l *zapLogger) AddCallerSkip(skip int) logcore.Logger {
+	zl := &zapLogger{zap: l.zap}
+	zl.zap = zl.zap.WithOptions(zap.AddCallerSkip(skip))
+
+	return zl
 }
