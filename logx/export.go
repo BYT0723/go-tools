@@ -41,7 +41,7 @@ func NewLogger(opts ...Option) (logcore.Logger, error) {
 }
 
 func With(kvs ...Field) logcore.Logger {
-	return defaultLogger.With(kvs...)
+	return defaultLogger.AddCallerSkip(-1).With(kvs...)
 }
 
 func Debug(args ...any) {
