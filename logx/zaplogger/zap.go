@@ -64,7 +64,7 @@ func (logger *zapLogger) With(kvs ...logcore.Field) logcore.Logger {
 	}
 
 	res := logger.clone()
-	res.zap = res.zap.With(fields...)
+	res.zap = res.zap.With(fields...).WithOptions(zap.AddCallerSkip(-1))
 	return res
 }
 

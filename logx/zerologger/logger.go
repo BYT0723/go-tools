@@ -95,7 +95,7 @@ func (l *zeroLogger) With(kvs ...logcore.Field) logcore.Logger {
 	for _, v := range kvs {
 		ctx = ctx.Any(v.Key, v.Value)
 	}
-	copy.zero = ctx.Logger()
+	copy.zero = ctx.Logger().With().CallerWithSkipFrameCount(3).Logger()
 	return copy
 }
 
