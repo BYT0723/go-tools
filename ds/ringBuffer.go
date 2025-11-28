@@ -49,19 +49,19 @@ func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 		r.m.Lock()
 		defer r.m.Unlock()
 		if r.full {
-			for i := r.next; i < r.size; i++ {
-				if !yield(r.data[i]) {
+			for _, v := range r.data[r.next:] {
+				if !yield(v) {
 					return
 				}
 			}
-			for i := int64(0); i < r.next; i++ {
-				if !yield(r.data[i]) {
+			for _, v := range r.data[:r.next] {
+				if !yield(v) {
 					return
 				}
 			}
 		} else {
-			for i := int64(0); i < r.next; i++ {
-				if !yield(r.data[i]) {
+			for _, v := range r.data[:r.next] {
+				if !yield(v) {
 					return
 				}
 			}
@@ -69,30 +69,27 @@ func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 	}
 }
 
-func (r *RingBuffer[T]) Values() []T {
+func (r *RingBuffer[T]) Values() (result []T) {
 	r.m.Lock()
 	defer r.m.Unlock()
 
-	var result []T
-	if r.full {
-		result = make([]T, r.size)
-		for i := int64(0); i < r.size; i++ {
-			index := (r.next + i) % r.size
-			result[i] = r.data[index]
-		}
-	} else {
+	if !r.full {
 		result = make([]T, r.next)
 		copy(result, r.data)
+		return result
 	}
+
+	result = make([]T, r.size)
+	copy(result, r.data[r.next:])
+	copy(result[r.size-r.next:], r.data[:r.next])
 	return result
 }
 
 func (r *RingBuffer[T]) Len() int {
-	if r.full {
-		return int(r.size)
-	} else {
+	if !r.full {
 		return int(r.next)
 	}
+	return int(r.size)
 }
 
 func (r *RingBuffer[T]) Cap() int {
