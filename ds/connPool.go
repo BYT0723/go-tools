@@ -3,43 +3,81 @@ package ds
 import (
 	"fmt"
 	"io"
-	"sync"
 	"sync/atomic"
 )
 
 var ErrConnPoolClosed = fmt.Errorf("conn pool is closed")
 
-var defaultConnPoolResidence = 10
+const defaultConnPoolResidence = 10
 
-type ConnPool[T io.Closer] struct {
-	Residence int               // 持久化连接数量
-	New       func() (T, error) // required, 新建连接function
-	Check     func(T) bool      // 检查连接是否可用
-	conns     chan T            // 连接池
-	once      sync.Once
-	closed    atomic.Bool
+type (
+	connPool[T io.Closer] struct {
+		factory func() (T, error) // required, 新建连接function
+		check   func(T) bool      // 检查连接是否可用
+		conns   chan T            // 连接池
+		closed  atomic.Bool
+	}
+
+	ConnPoolOption[T io.Closer] func(*connPool[T])
+)
+
+func WithCheck[T io.Closer](check func(T) bool) ConnPoolOption[T] {
+	return func(p *connPool[T]) {
+		p.check = check
+	}
 }
 
-func (c *ConnPool[T]) Get() (v T, err error) {
-	c.once.Do(c.init)
+// NewConnPool returns a new connection pool.
+func NewConnPool[T io.Closer](
+	factory func() (T, error),
+	residence int,
+	opts ...ConnPoolOption[T],
+) *connPool[T] {
+	if factory == nil {
+		panic("conn pool: nil factory")
+	}
+	if residence <= 0 {
+		residence = defaultConnPoolResidence
+	}
 
+	p := &connPool[T]{
+		factory: factory,
+		conns:   make(chan T, residence),
+	}
+
+	for _, opt := range opts {
+		opt(p)
+	}
+
+	return p
+}
+
+// Get returns a connection from the pool.
+func (c *connPool[T]) Get() (v T, err error) {
 	if c.closed.Load() {
 		return v, ErrConnPoolClosed
 	}
 
 	select {
-	case conn := <-c.conns:
-		if c.Check != nil && !c.Check(conn) {
+	case conn, ok := <-c.conns:
+		if !ok {
+			return v, ErrConnPoolClosed
+		}
+		if c.check != nil && !c.check(conn) {
 			conn.Close()
-			return c.New()
+			if c.closed.Load() {
+				return v, ErrConnPoolClosed
+			}
+			return c.factory()
 		}
 		return conn, nil
 	default:
-		return c.New()
+		return c.factory()
 	}
 }
 
-func (c *ConnPool[T]) Put(conn T) error {
+// Put returns a connection to the pool.
+func (c *connPool[T]) Put(conn T) error {
 	if c.closed.Load() {
 		return ErrConnPoolClosed
 	}
@@ -51,23 +89,18 @@ func (c *ConnPool[T]) Put(conn T) error {
 	}
 }
 
-func (c *ConnPool[T]) Close() {
+// Close closes the connection pool.
+func (c *connPool[T]) Close() {
 	if !c.closed.CompareAndSwap(false, true) {
 		return
 	}
 
-	close(c.conns)
-	for c := range c.conns {
-		c.Close()
+	for {
+		select {
+		case c := <-c.conns:
+			c.Close()
+		default:
+			return
+		}
 	}
-}
-
-func (c *ConnPool[T]) init() {
-	if c.New == nil {
-		panic("ConnPool.New is nil")
-	}
-	if c.Residence <= 0 {
-		c.Residence = defaultConnPoolResidence
-	}
-	c.conns = make(chan T, c.Residence)
 }
