@@ -2,3 +2,4 @@ logs/
 main.go
 docker-compose.yml
 prometheus.yml
+cover.cov

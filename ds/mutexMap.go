@@ -131,6 +131,12 @@ func (m *MutexMap[K, V]) Values() []V {
 	return slices.Collect(maps.Values(m.entries))
 }
 
+func (m *MutexMap[K, V]) Len() int {
+	m.l.Lock()
+	defer m.l.Unlock()
+	return len(m.entries)
+}
+
 func (m *MutexMap[K, V]) Filter(filter func(K, V) bool) Map[K, V] {
 	m.l.Lock()
 	defer m.l.Unlock()
