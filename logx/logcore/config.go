@@ -13,10 +13,9 @@ type LoggerConf struct {
 	// The lowest level of log.
 	// default: debug
 	Level string
-	// Whether different files will be stored according to the log level.
-	// if true, all level logs will be stored in a single file. Otherwise store hierarchically.
+	// Split into different files according to different log levels
 	// default: false
-	Single bool
+	Multi bool
 	// The maximum number of backups.
 	// default: 20
 	MaxBackups int
@@ -27,7 +26,7 @@ type LoggerConf struct {
 	// default: 7
 	MaxAge int
 	// Whether the console outputs.
-	// default: true
+	// default: false
 	Console bool
 }
 
@@ -54,7 +53,7 @@ func (c *LoggerConf) Merge(cfg *LoggerConf) {
 	if cfg.MaxAge > 0 {
 		c.MaxAge = cfg.MaxAge
 	}
-	c.Single = cfg.Single
+	c.Multi = cfg.Multi
 	c.Console = cfg.Console
 }
 
@@ -64,10 +63,10 @@ func DefaultLoggerConf() *LoggerConf {
 		Name:       "app",
 		Ext:        ".log",
 		Level:      "debug",
-		Single:     false,
+		Multi:      false,
 		MaxBackups: 20,
 		MaxSize:    20,
 		MaxAge:     7,
-		Console:    true,
+		Console:    false,
 	}
 }

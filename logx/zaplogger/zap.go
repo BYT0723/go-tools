@@ -23,7 +23,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 		cores    = []zapcore.Core{}
 		basename = filepath.Join(cfg.Dir, cfg.Name)
 	)
-	if cfg.Single {
+	if !cfg.Multi {
 		targetLevel := level.Level()
 		cores = append(cores, newCore(
 			cfg,

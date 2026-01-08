@@ -46,7 +46,7 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zeroLogger, err error) {
 		basename = filepath.Join(cfg.Dir, cfg.Name)
 	)
 
-	if cfg.Single {
+	if !cfg.Multi {
 		writers = append(writers, NewLevelWriter(zerolog.SyncWriter(&lumberjack.Logger{
 			Filename:   basename + cfg.Ext,
 			MaxSize:    cfg.MaxSize,
