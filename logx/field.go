@@ -2,6 +2,7 @@ package logx
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/BYT0723/go-tools/logx/logcore"
 )
@@ -131,5 +132,12 @@ func Err(value error) Field {
 	return Field{
 		Key:   "error",
 		Value: value.Error(),
+	}
+}
+
+func Duration(key string, value time.Duration) Field {
+	return Field{
+		Key:   key,
+		Value: value,
 	}
 }
