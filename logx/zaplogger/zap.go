@@ -11,8 +11,7 @@ import (
 )
 
 type zapLogger struct {
-	zap   *zap.Logger
-	sugar *zap.SugaredLogger
+	zap *zap.Logger
 }
 
 func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
@@ -54,20 +53,14 @@ func NewInstance(cfg *logcore.LoggerConf) (ins *zapLogger, err error) {
 
 	zl := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2))
 
-	ins = &zapLogger{
-		zap:   zl,
-		sugar: zl.Sugar(),
-	}
+	ins = &zapLogger{zap: zl}
 
 	return
 }
 
 func (l *zapLogger) With(kvs ...logcore.Field) logcore.Logger {
 	zl := l.zap.With(transFields(kvs)...)
-	return &zapLogger{
-		zap:   zl,
-		sugar: zl.Sugar(),
-	}
+	return &zapLogger{zap: zl}
 }
 
 func (l *zapLogger) Debug(msg string, kvs ...logcore.Field) {
@@ -75,7 +68,7 @@ func (l *zapLogger) Debug(msg string, kvs ...logcore.Field) {
 }
 
 func (l *zapLogger) Debugf(format string, args ...any) {
-	l.sugar.Debugf(format, args...)
+	l.zap.Sugar().Debugf(format, args...)
 }
 
 func (l *zapLogger) Info(msg string, kvs ...logcore.Field) {
@@ -83,7 +76,7 @@ func (l *zapLogger) Info(msg string, kvs ...logcore.Field) {
 }
 
 func (l *zapLogger) Infof(format string, args ...any) {
-	l.sugar.Infof(format, args...)
+	l.zap.Sugar().Infof(format, args...)
 }
 
 func (l *zapLogger) Warn(msg string, kvs ...logcore.Field) {
@@ -91,7 +84,7 @@ func (l *zapLogger) Warn(msg string, kvs ...logcore.Field) {
 }
 
 func (l *zapLogger) Warnf(format string, args ...any) {
-	l.sugar.Warnf(format, args)
+	l.zap.Sugar().Warnf(format, args)
 }
 
 func (l *zapLogger) Error(msg string, kvs ...logcore.Field) {
@@ -99,7 +92,7 @@ func (l *zapLogger) Error(msg string, kvs ...logcore.Field) {
 }
 
 func (l *zapLogger) Errorf(format string, args ...any) {
-	l.sugar.Errorf(format, args...)
+	l.zap.Sugar().Errorf(format, args...)
 }
 
 func (l *zapLogger) Panic(msg string, kvs ...logcore.Field) {
@@ -107,7 +100,7 @@ func (l *zapLogger) Panic(msg string, kvs ...logcore.Field) {
 }
 
 func (l *zapLogger) Panicf(format string, args ...any) {
-	l.sugar.Panicf(format, args...)
+	l.zap.Sugar().Panicf(format, args...)
 }
 
 func (l *zapLogger) Fatal(msg string, kvs ...logcore.Field) {
@@ -115,7 +108,7 @@ func (l *zapLogger) Fatal(msg string, kvs ...logcore.Field) {
 }
 
 func (l *zapLogger) Fatalf(format string, args ...any) {
-	l.sugar.Fatalf(format, args...)
+	l.zap.Sugar().Fatalf(format, args...)
 }
 
 func (l *zapLogger) Log(level string, msg string, kvs ...logcore.Field) {

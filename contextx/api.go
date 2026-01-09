@@ -4,10 +4,12 @@ import "context"
 
 type apiKey struct{}
 
-// log.Logger or nil
-func ApiKey(ctx context.Context) string {
-	key, _ := ctx.Value(apiKey{}).(string)
-	return key
+func ApiKey(ctx context.Context) (string, error) {
+	key, ok := ctx.Value(apiKey{}).(string)
+	if !ok {
+		return "", ErrApiKeyNotFound
+	}
+	return key, nil
 }
 
 func WithApiKey(ctx context.Context, key string) context.Context {

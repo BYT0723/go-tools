@@ -9,9 +9,12 @@ import (
 type loggerKey struct{}
 
 // log.Logger or nil
-func Logger(ctx context.Context) logx.Logger {
-	logger, _ := ctx.Value(loggerKey{}).(logx.Logger)
-	return logger
+func Logger(ctx context.Context) (logx.Logger, error) {
+	l, ok := ctx.Value(loggerKey{}).(logx.Logger)
+	if !ok {
+		return nil, ErrLoggerNotFound
+	}
+	return l, nil
 }
 
 func WithLogger(ctx context.Context, logger logx.Logger) context.Context {
