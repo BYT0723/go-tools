@@ -25,7 +25,8 @@ func BenchmarkZap(b *testing.B) {
 		b.Fail()
 	}
 	for i := 0; i < b.N; i++ {
-		l.Debug(i)
+		l.Debug("benchmark", Int("index", i))
+		l.Debugf("benchmark-fmt: %v", i)
 	}
 }
 
@@ -48,6 +49,7 @@ func BenchmarkZeroLog(b *testing.B) {
 		b.Fail()
 	}
 	for i := 0; i < b.N; i++ {
-		l.Debug(i)
+		l.Debug("benchmark", Int("index", i))
+		l.Debugf("benchmark-fmt: %v", i)
 	}
 }

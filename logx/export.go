@@ -44,48 +44,48 @@ func With(kvs ...Field) logcore.Logger {
 	return defaultLogger.AddCallerSkip(-1).With(kvs...)
 }
 
-func Debug(args ...any) {
-	defaultLogger.Debug(args...)
+func Debug(msg string, kvs ...Field) {
+	defaultLogger.Debug(msg, kvs...)
 }
 
 func Debugf(format string, args ...any) {
 	defaultLogger.Debugf(format, args...)
 }
 
-func Info(args ...any) {
-	defaultLogger.Info(args...)
+func Info(msg string, kvs ...Field) {
+	defaultLogger.Info(msg, kvs...)
 }
 
 func Infof(format string, args ...any) {
 	defaultLogger.Infof(format, args...)
 }
 
-func Warn(args ...any) {
-	defaultLogger.Warn(args...)
+func Warn(msg string, kvs ...Field) {
+	defaultLogger.Warn(msg, kvs...)
 }
 
 func Warnf(format string, args ...any) {
 	defaultLogger.Warnf(format, args...)
 }
 
-func Error(args ...any) {
-	defaultLogger.Error(args...)
+func Error(msg string, kvs ...Field) {
+	defaultLogger.Error(msg, kvs...)
 }
 
 func Errorf(format string, args ...any) {
 	defaultLogger.Errorf(format, args...)
 }
 
-func Panic(args ...any) {
-	defaultLogger.Panic(args...)
+func Panic(msg string, kvs ...Field) {
+	defaultLogger.Panic(msg, kvs...)
 }
 
 func Panicf(format string, args ...any) {
 	defaultLogger.Panicf(format, args...)
 }
 
-func Fatal(args ...any) {
-	defaultLogger.Fatal(args...)
+func Fatal(msg string, kvs ...Field) {
+	defaultLogger.Fatal(msg, kvs...)
 }
 
 func Fatalf(format string, args ...any) {
