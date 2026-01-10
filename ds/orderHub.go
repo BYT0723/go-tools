@@ -14,17 +14,19 @@ type OrderHub[T any] struct {
 	bufSize int
 
 	// subscribers holds all active subscriber channels in subscription order.
-	subscribers []chan T
+	subscribers []*Subscription[T]
 
 	mutex sync.Mutex
 	closeModule
+	idGenerator
+	hubCallback[T]
 }
 
 // NewOrderHub creates a new OrderBus with the given buffer size for each subscriber.
 func NewOrderHub[T any](bufSize int) *OrderHub[T] {
 	return &OrderHub[T]{
 		bufSize:     bufSize,
-		subscribers: make([]chan T, 0, 256),
+		subscribers: make([]*Subscription[T], 0, 256),
 	}
 }
 
@@ -40,8 +42,11 @@ func (b *OrderHub[T]) Subscribe() (*Subscription[T], error) {
 	}
 
 	ch := make(chan T, b.bufSize)
-	s := &Subscription[T]{C: ch}
-	b.subscribers = append(b.subscribers, ch)
+	s := &Subscription[T]{
+		ID: b.Increment(),
+		c:  ch,
+	}
+	b.subscribers = append(b.subscribers, s)
 	return s, nil
 }
 
@@ -50,15 +55,16 @@ func (b *OrderHub[T]) Subscribe() (*Subscription[T], error) {
 // If the bus is closed, it returns ErrHubClosed.
 func (b *OrderHub[T]) Publish(v T) error {
 	b.mutex.Lock()
-	defer b.mutex.Unlock()
-
 	if err := b.closeCheck(); err != nil {
+		b.mutex.Unlock()
 		return err
 	}
+	subs := append([]*Subscription[T](nil), b.subscribers...)
+	b.mutex.Unlock()
 
-	for _, ch := range b.subscribers {
+	for _, sub := range subs {
 		select {
-		case ch <- v:
+		case sub.c <- v:
 		default:
 			// Drop message if subscriber buffer is full.
 		}
@@ -72,9 +78,9 @@ func (b *OrderHub[T]) Unsubscribe(s *Subscription[T]) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	for i, ch := range b.subscribers {
-		if ch == s.C {
-			close(ch)
+	for i, sub := range b.subscribers {
+		if sub == s {
+			close(sub.c)
 			b.subscribers = append(b.subscribers[:i], b.subscribers[i+1:]...)
 			break
 		}
@@ -91,8 +97,8 @@ func (b *OrderHub[T]) Close() error {
 		return err
 	}
 
-	for _, ch := range b.subscribers {
-		close(ch)
+	for _, sub := range b.subscribers {
+		close(sub.c)
 	}
 	b.subscribers = nil
 	b.closed = true

@@ -19,9 +19,9 @@ func TestOrderBus(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			defer b.Unsubscribe(s)
-			v := <-s.C
+			v := <-s.Channel()
 			assert.Equal(t, "hello", v)
-			v = <-s.C
+			v = <-s.Channel()
 			assert.Equal(t, "my name is walter", v)
 		}()
 	}

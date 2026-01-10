@@ -9,7 +9,7 @@ import (
 
 func TestFastBus(t *testing.T) {
 	var (
-		b  = NewFastHub[string](10)
+		b  = NewFastHub[string](3)
 		wg sync.WaitGroup
 	)
 
@@ -19,11 +19,11 @@ func TestFastBus(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			defer b.Unsubscribe(s)
-			v := <-s.C
+			v := <-s.Channel()
 			assert.Equal(t, "string1", v)
-			v = <-s.C
+			v = <-s.Channel()
 			assert.Equal(t, "string2", v)
-			v = <-s.C
+			v = <-s.Channel()
 			assert.Equal(t, "", v)
 		}()
 	}

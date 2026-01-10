@@ -1,6 +1,7 @@
 package ds
 
 import (
+	"maps"
 	"sync"
 	"sync/atomic"
 )
@@ -13,16 +14,17 @@ var _ Hub[int] = (*FastHub[int])(nil)
 // If a subscriber's channel buffer is full, the message is dropped.
 type FastHub[T any] struct {
 	bufSize     int
-	subscribers map[uint64]chan T
+	subscribers map[uint64]*Subscription[T]
 	mutex       sync.Mutex
 	closeModule
 	idGenerator
+	hubCallback[T]
 }
 
 // NewFastHub creates a new FastBus with the given buffer size for each subscriber.
 func NewFastHub[T any](bufSize int) *FastHub[T] {
 	return &FastHub[T]{
-		subscribers: make(map[uint64]chan T),
+		subscribers: make(map[uint64]*Subscription[T]),
 		bufSize:     bufSize,
 	}
 }
@@ -40,18 +42,18 @@ func (b *FastHub[T]) Subscribe() (*Subscription[T], error) {
 	var (
 		ch = make(chan T, b.bufSize)
 		s  = &Subscription[T]{
-			id: b.Increment(),
-			C:  ch,
+			ID: b.Increment(),
+			c:  ch,
 		}
 	)
 	// Ensure ID uniqueness.
 	for {
-		if _, ok := b.subscribers[s.id]; !ok {
+		if _, ok := b.subscribers[s.ID]; !ok {
 			break
 		}
-		s.id = b.Increment()
+		s.ID = b.Increment()
 	}
-	b.subscribers[s.id] = ch
+	b.subscribers[s.ID] = s
 	return s, nil
 }
 
@@ -60,15 +62,16 @@ func (b *FastHub[T]) Subscribe() (*Subscription[T], error) {
 // If the bus is closed, it returns ErrHubClosed.
 func (b *FastHub[T]) Publish(v T) error {
 	b.mutex.Lock()
-	defer b.mutex.Unlock()
-
 	if err := b.closeCheck(); err != nil {
+		b.mutex.Unlock()
 		return err
 	}
+	subs := maps.Values(b.subscribers)
+	b.mutex.Unlock()
 
-	for _, ch := range b.subscribers {
+	for sub := range subs {
 		select {
-		case ch <- v:
+		case sub.c <- v:
 		default:
 			// Drop message if subscriber buffer is full.
 		}
@@ -85,9 +88,9 @@ func (b *FastHub[T]) Unsubscribe(s *Subscription[T]) {
 		return
 	}
 
-	if ch, ok := b.subscribers[s.id]; ok {
-		delete(b.subscribers, s.id)
-		close(ch)
+	if sub, ok := b.subscribers[s.ID]; ok {
+		delete(b.subscribers, s.ID)
+		close(sub.c)
 	}
 }
 
@@ -101,8 +104,8 @@ func (b *FastHub[T]) Close() error {
 		return nil
 	}
 
-	for _, ch := range b.subscribers {
-		close(ch)
+	for _, sub := range b.subscribers {
+		close(sub.c)
 	}
 	b.subscribers = nil
 	b.closed = true
