@@ -45,7 +45,7 @@ func WithApiLog(level string) echo.MiddlewareFunc {
 func WithTraceLogger(logger logx.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Request().WithContext(ctxx.WithLogger(c.Request().Context(), logger))
+			c.SetRequest(c.Request().WithContext(ctxx.WithLogger(c.Request().Context(), logger)))
 			return next(c)
 		}
 	}
@@ -54,7 +54,9 @@ func WithTraceLogger(logger logx.Logger) echo.MiddlewareFunc {
 func WithApiKey(keyGenerate func(c echo.Context) string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Request().WithContext(ctxx.WithApiKey(c.Request().Context(), keyGenerate(c)))
+			c.SetRequest(
+				c.Request().WithContext(ctxx.WithApiKey(c.Request().Context(), keyGenerate(c))),
+			)
 			return next(c)
 		}
 	}

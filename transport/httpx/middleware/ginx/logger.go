@@ -19,9 +19,9 @@ var (
 func WithApiLog(level string) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var (
-			l, err    = ctxx.Logger(ctx)
+			l, err    = ctxx.Logger(ctx.Request.Context())
 			start     = time.Now() // 开始时间
-			apiKey, _ = ctxx.ApiKey(ctx)
+			apiKey, _ = ctxx.ApiKey(ctx.Request.Context())
 		)
 
 		// 处理请求
@@ -46,14 +46,16 @@ func WithApiLog(level string) func(*gin.Context) {
 
 func WithTraceLogger(logger logx.Logger) func(*gin.Context) {
 	return func(ctx *gin.Context) {
-		ctx.Request = ctx.Request.WithContext(ctxx.WithLogger(ctx, logger))
+		ctx.Request = ctx.Request.WithContext(ctxx.WithLogger(ctx.Request.Context(), logger))
 		ctx.Next()
 	}
 }
 
 func WithApiKey(keyGenerate func(ctx *gin.Context) string) func(*gin.Context) {
 	return func(ctx *gin.Context) {
-		ctx.Request = ctx.Request.WithContext(ctxx.WithApiKey(ctx, keyGenerate(ctx)))
+		ctx.Request = ctx.Request.WithContext(
+			ctxx.WithApiKey(ctx.Request.Context(), keyGenerate(ctx)),
+		)
 		ctx.Next()
 	}
 }
