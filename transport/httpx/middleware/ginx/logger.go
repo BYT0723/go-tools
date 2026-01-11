@@ -18,21 +18,22 @@ var (
 // else do nothing
 func WithApiLog(level string) func(*gin.Context) {
 	return func(ctx *gin.Context) {
-		var (
-			l, err    = ctxx.Logger(ctx.Request.Context())
-			start     = time.Now() // 开始时间
-			apiKey, _ = ctxx.ApiKey(ctx.Request.Context())
-		)
+		// 开始时间
+		start := time.Now()
 
 		// 处理请求
 		ctx.Next()
 
+		l, err := ctxx.Logger(ctx.Request.Context())
 		if err != nil {
 			return
 		}
 
-		// 结束时间
-		latency := time.Since(start)
+		var (
+			apiKey, _ = ctxx.ApiKey(ctx.Request.Context())
+			// 结束时间
+			latency = time.Since(start)
+		)
 
 		l.With(
 			logx.String("method", ctx.Request.Method),
@@ -46,7 +47,9 @@ func WithApiLog(level string) func(*gin.Context) {
 
 func WithTraceLogger(logger logx.Logger) func(*gin.Context) {
 	return func(ctx *gin.Context) {
-		ctx.Request = ctx.Request.WithContext(ctxx.WithLogger(ctx.Request.Context(), logger))
+		if logger != nil {
+			ctx.Request = ctx.Request.WithContext(ctxx.WithLogger(ctx.Request.Context(), logger))
+		}
 		ctx.Next()
 	}
 }

@@ -18,17 +18,20 @@ func WithApiLog(level string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			var (
-				l, err1   = ctxx.Logger(c.Request().Context())
-				apiKey, _ = ctxx.ApiKey(c.Request().Context())
-				start     = time.Now()
+				start = time.Now()
+				err   = next(c)
 			)
-			err := next(c)
-			if err1 != nil {
+
+			l, lerr := ctxx.Logger(c.Request().Context())
+			if lerr == nil {
 				return err
 			}
-			// 结束时间
-			latency := time.Since(start)
 
+			var (
+				apiKey, _ = ctxx.ApiKey(c.Request().Context())
+				// 结束时间
+				latency = time.Since(start)
+			)
 			l.With(
 				logx.String("method", c.Request().Method),
 				logx.String("path", c.Request().URL.Path),
@@ -45,7 +48,11 @@ func WithApiLog(level string) echo.MiddlewareFunc {
 func WithTraceLogger(logger logx.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.SetRequest(c.Request().WithContext(ctxx.WithLogger(c.Request().Context(), logger)))
+			if logger != nil {
+				c.SetRequest(
+					c.Request().WithContext(ctxx.WithLogger(c.Request().Context(), logger)),
+				)
+			}
 			return next(c)
 		}
 	}
