@@ -11,7 +11,6 @@ import (
 var (
 	_ echo.MiddlewareFunc = WithTraceLogger(nil)
 	_ echo.MiddlewareFunc = WithApiLog("info")
-	_ echo.MiddlewareFunc = WithApiKey(func(c echo.Context) string { return "" })
 )
 
 func WithApiLog(level string) echo.MiddlewareFunc {
@@ -28,17 +27,38 @@ func WithApiLog(level string) echo.MiddlewareFunc {
 			}
 
 			var (
-				apiKey, _ = ctxx.ApiKey(c.Request().Context())
+				// 字段
+				fields = make([]logx.Field, 0, 10)
 				// 结束时间
 				latency = time.Since(start)
 			)
-			l.With(
+
+			if traceID, err := ctxx.TraceID(c.Request().Context()); err == nil {
+				fields = append(fields, logx.String("trace_id", traceID))
+			}
+			if spanID, err := ctxx.SpanID(c.Request().Context()); err == nil {
+				fields = append(fields, logx.String("span_id", spanID))
+			}
+			if reqID, err := ctxx.RequestID(c.Request().Context()); err == nil {
+				fields = append(fields, logx.String("request_id", reqID))
+			}
+			if service, err := ctxx.Service(c.Request().Context()); err == nil {
+				fields = append(fields, logx.String("service", service))
+			}
+			if version, err := ctxx.Version(c.Request().Context()); err == nil {
+				fields = append(fields, logx.String("version", version))
+			}
+			if env, err := ctxx.Env(c.Request().Context()); err == nil {
+				fields = append(fields, logx.String("env", env))
+			}
+
+			fields = append(fields,
 				logx.String("method", c.Request().Method),
 				logx.String("path", c.Request().URL.Path),
 				logx.Int("status", c.Response().Status),
-				logx.String("api_key", apiKey),
 				logx.Duration("latency", latency),
-			).Log(level, "API Request")
+			)
+			l.Log(level, "API REQUEST", fields...)
 
 			return err
 		}
@@ -53,17 +73,6 @@ func WithTraceLogger(logger logx.Logger) echo.MiddlewareFunc {
 					c.Request().WithContext(ctxx.WithLogger(c.Request().Context(), logger)),
 				)
 			}
-			return next(c)
-		}
-	}
-}
-
-func WithApiKey(keyGenerate func(c echo.Context) string) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.SetRequest(
-				c.Request().WithContext(ctxx.WithApiKey(c.Request().Context(), keyGenerate(c))),
-			)
 			return next(c)
 		}
 	}
