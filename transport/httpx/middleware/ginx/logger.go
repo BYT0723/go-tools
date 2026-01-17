@@ -15,7 +15,7 @@ var (
 
 // must be after WithTraceLogger
 // else do nothing
-func WithApiLog(level string) func(*gin.Context) {
+func WithApiLog(level string, fields ...func(*gin.Context) []logx.Field) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		// 开始时间
 		start := time.Now()
@@ -30,37 +30,41 @@ func WithApiLog(level string) func(*gin.Context) {
 
 		var (
 			// 字段
-			fields = make([]logx.Field, 0, 10)
+			fs = make([]logx.Field, 0, 10)
 			// 结束时间
 			latency = time.Since(start)
 		)
 
 		if traceID, err := ctxx.TraceID(ctx.Request.Context()); err == nil {
-			fields = append(fields, logx.String("trace_id", traceID))
+			fs = append(fs, logx.String("trace_id", traceID))
 		}
 		if spanID, err := ctxx.SpanID(ctx.Request.Context()); err == nil {
-			fields = append(fields, logx.String("span_id", spanID))
+			fs = append(fs, logx.String("span_id", spanID))
 		}
 		if reqID, err := ctxx.RequestID(ctx.Request.Context()); err == nil {
-			fields = append(fields, logx.String("request_id", reqID))
+			fs = append(fs, logx.String("request_id", reqID))
 		}
 		if service, err := ctxx.Service(ctx.Request.Context()); err == nil {
-			fields = append(fields, logx.String("service", service))
+			fs = append(fs, logx.String("service", service))
 		}
 		if version, err := ctxx.Version(ctx.Request.Context()); err == nil {
-			fields = append(fields, logx.String("version", version))
+			fs = append(fs, logx.String("version", version))
 		}
 		if env, err := ctxx.Env(ctx.Request.Context()); err == nil {
-			fields = append(fields, logx.String("env", env))
+			fs = append(fs, logx.String("env", env))
 		}
 
-		fields = append(fields,
+		for _, f := range fields {
+			fs = append(fs, f(ctx)...)
+		}
+
+		fs = append(fs,
 			logx.String("method", ctx.Request.Method),
 			logx.String("path", ctx.Request.URL.Path),
 			logx.Int("status", ctx.Writer.Status()),
 			logx.Duration("latency", latency),
 		)
-		l.Log(level, "API REQUEST", fields...)
+		l.Log(level, "API REQUEST", fs...)
 	}
 }
 

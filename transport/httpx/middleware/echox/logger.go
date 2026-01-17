@@ -13,7 +13,7 @@ var (
 	_ echo.MiddlewareFunc = WithApiLog("info")
 )
 
-func WithApiLog(level string) echo.MiddlewareFunc {
+func WithApiLog(level string, fields ...func(echo.Context) []logx.Field) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			var (
@@ -28,37 +28,41 @@ func WithApiLog(level string) echo.MiddlewareFunc {
 
 			var (
 				// 字段
-				fields = make([]logx.Field, 0, 10)
+				fs = make([]logx.Field, 0, 10)
 				// 结束时间
 				latency = time.Since(start)
 			)
 
 			if traceID, err := ctxx.TraceID(c.Request().Context()); err == nil {
-				fields = append(fields, logx.String("trace_id", traceID))
+				fs = append(fs, logx.String("trace_id", traceID))
 			}
 			if spanID, err := ctxx.SpanID(c.Request().Context()); err == nil {
-				fields = append(fields, logx.String("span_id", spanID))
+				fs = append(fs, logx.String("span_id", spanID))
 			}
 			if reqID, err := ctxx.RequestID(c.Request().Context()); err == nil {
-				fields = append(fields, logx.String("request_id", reqID))
+				fs = append(fs, logx.String("request_id", reqID))
 			}
 			if service, err := ctxx.Service(c.Request().Context()); err == nil {
-				fields = append(fields, logx.String("service", service))
+				fs = append(fs, logx.String("service", service))
 			}
 			if version, err := ctxx.Version(c.Request().Context()); err == nil {
-				fields = append(fields, logx.String("version", version))
+				fs = append(fs, logx.String("version", version))
 			}
 			if env, err := ctxx.Env(c.Request().Context()); err == nil {
-				fields = append(fields, logx.String("env", env))
+				fs = append(fs, logx.String("env", env))
 			}
 
-			fields = append(fields,
+			for _, f := range fields {
+				fs = append(fs, f(c)...)
+			}
+
+			fs = append(fs,
 				logx.String("method", c.Request().Method),
 				logx.String("path", c.Request().URL.Path),
 				logx.Int("status", c.Response().Status),
 				logx.Duration("latency", latency),
 			)
-			l.Log(level, "API REQUEST", fields...)
+			l.Log(level, "API REQUEST", fs...)
 
 			return err
 		}
