@@ -55,5 +55,5 @@ func (NopLogger) Sync() error {
 }
 
 func (l NopLogger) AddCallerSkip(caller int) logcore.Logger {
-	reutrn l
+	return l
 }
