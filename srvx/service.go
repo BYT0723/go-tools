@@ -53,7 +53,7 @@ func (ss *Services) Run(ctx context.Context) {
 			}
 
 			defer func() {
-				ss.Log.Error("service exit", logx.String("name", name))
+				ss.Log.Info("service exit", logx.String("name", name))
 				if err := s.Destroy(ctx); err != nil {
 					ss.Log.Error("service destroy error", logx.String("name", name), logx.Err(err))
 				}
