@@ -22,7 +22,7 @@ func WithApiLog(level string) echo.MiddlewareFunc {
 			)
 
 			l, lerr := ctxx.Logger(c.Request().Context())
-			if lerr == nil {
+			if lerr != nil {
 				return err
 			}
 
