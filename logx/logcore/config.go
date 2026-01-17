@@ -67,6 +67,6 @@ func DefaultLoggerConf() *LoggerConf {
 		MaxBackups: 20,
 		MaxSize:    20,
 		MaxAge:     7,
-		Console:    false,
+		Console:    true,
 	}
 }
