@@ -4,15 +4,16 @@ import (
 	"unsafe"
 )
 
-// UnsafeBytes(string)
-// 新建byte slice header, 将Data指向字符串的Data内存地址
-// NOTE: 注意，如果string data内存非配在只读段内，修改[]byte内容会导致panic
+// UnsafeBytes converts a string to a byte slice without copying the underlying data.
+// It creates a new byte slice header pointing to the string's data memory address.
+// WARNING: If the string data is allocated in read-only memory, modifying the
+// returned byte slice will cause a panic.
 func UnsafeBytes(s string) []byte {
 	return unsafe.Slice(unsafe.StringData(s), len(s))
 }
 
-// UnsafeString([]byte)
-// 将byte slice header直接转换成string header
+// UnsafeString converts a byte slice to a string without copying the underlying data.
+// It converts the byte slice header directly to a string header.
 //
 //	type SliceHeader struct {
 //		Data uintptr
@@ -25,7 +26,8 @@ func UnsafeBytes(s string) []byte {
 //		Len  int
 //	}
 //
-// 利用内存布局相似的特性，直接将byte slice header转换成string header使用
+// This works because the memory layouts are similar - the byte slice header
+// can be directly cast to a string header (ignoring the Cap field).
 func UnsafeString(bs []byte) string {
 	return *(*string)(unsafe.Pointer(&bs))
 }
