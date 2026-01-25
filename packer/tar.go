@@ -20,7 +20,6 @@ func Untar(src string, dst string, uncompressors ...Uncompressor) (err error) {
 	}
 	defer f.Close()
 
-
 	if err = os.MkdirAll(dst, os.ModePerm); err != nil {
 		return err
 	}

@@ -1,0 +1,43 @@
+# 定义基本变量
+Name={{.name}}
+VERSION=$(shell git describe --tags)
+BUILD_DATE=$(shell date -Iseconds)
+BUILD_DIR={{.buildDir}}
+
+# 构建参数
+IMPORT_PKG={{.importPkg}}
+LDFLAGS=-ldflags "-X ${IMPORT_PKG}.Name=${Name} -X ${IMPORT_PKG}.Version=${VERSION} -X ${IMPORT_PKG}.BuildDate=${BUILD_DATE}"
+
+# 设置目标平台
+PLATFORMS=linux-amd64 linux-arm64 windows-amd64 darwin-amd64 darwin-arm64
+
+$(PLATFORMS):
+	@CGO_ENABLED=0 GOOS=$(shell echo $@ | cut -d- -f1) GOARCH=$(shell echo $@ | cut -d- -f2) go build -o bin/$(Name)-$@ ${LDFLAGS} main.go
+	@[ ! -z "$(shell command -v upx)" ] && [ "$(shell echo $@ | cut -d- -f1)" != "darwin" ] && upx bin/$(Name)-$@ || true
+
+# 默认目标
+.PHONY: all
+all: build
+
+.PHONY: build
+build: $(PLATFORMS)
+
+# 运行测试
+.PHONY: test
+test:
+	go test -v ./...
+
+# 清理构建文件
+.PHONY: clean
+clean:
+	@[ -d $(BUILD_DIR) ] && rm -r $(BUILD_DIR)
+
+# 安装依赖
+.PHONY: tidy
+tidy:
+	go mod tidy
+
+# 代码格式化
+.PHONY: fmt
+fmt:
+	go fmt ./...
