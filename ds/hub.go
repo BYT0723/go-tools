@@ -45,6 +45,8 @@ type Subscription[T any] struct {
 	c chan T
 }
 
+// Channel returns the receive-only channel for this subscription.
+// Use this channel to receive messages published to the Hub.
 func (s *Subscription[T]) Channel() <-chan T {
 	return s.c
 }

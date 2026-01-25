@@ -15,12 +15,15 @@ type RingBuffer[T any] struct {
 	full bool
 }
 
+// NewRingBuffer creates a new RingBuffer with default size (1024).
 func NewRingBuffer[T any]() *RingBuffer[T] {
 	return NewRingBufferWithSize[T](DefaultRingSize)
 }
 
 const DefaultRingSize = 1024
 
+// NewRingBufferWithSize creates a new RingBuffer with the specified size.
+// If size <= 0, DefaultRingSize (1024) is used.
 func NewRingBufferWithSize[T any](size int) *RingBuffer[T] {
 	if size <= 0 {
 		size = DefaultRingSize
@@ -31,6 +34,8 @@ func NewRingBufferWithSize[T any](size int) *RingBuffer[T] {
 	}
 }
 
+// Push adds one or more values to the ring buffer.
+// When the buffer is full, older values are overwritten (circular behavior).
 func (r *RingBuffer[T]) Push(values ...T) {
 	r.m.Lock()
 	defer r.m.Unlock()
@@ -44,6 +49,8 @@ func (r *RingBuffer[T]) Push(values ...T) {
 	}
 }
 
+// Iterator returns an iterator that yields all values in the ring buffer
+// in chronological order (oldest to newest).
 func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		r.m.Lock()
@@ -69,6 +76,8 @@ func (r *RingBuffer[T]) Iterator() iter.Seq[T] {
 	}
 }
 
+// Values returns a slice containing all values in the ring buffer
+// in chronological order (oldest to newest).
 func (r *RingBuffer[T]) Values() (result []T) {
 	r.m.Lock()
 	defer r.m.Unlock()
@@ -85,6 +94,7 @@ func (r *RingBuffer[T]) Values() (result []T) {
 	return result
 }
 
+// Len returns the number of elements currently stored in the ring buffer.
 func (r *RingBuffer[T]) Len() int {
 	if !r.full {
 		return int(r.next)
@@ -92,6 +102,7 @@ func (r *RingBuffer[T]) Len() int {
 	return int(r.size)
 }
 
+// Cap returns the capacity of the ring buffer.
 func (r *RingBuffer[T]) Cap() int {
 	return int(r.size)
 }

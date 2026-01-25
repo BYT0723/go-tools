@@ -2,24 +2,31 @@ package ds
 
 import "fmt"
 
+// Set is a generic interface for collections of unique elements.
+// It provides standard set operations like union, intersection, difference, etc.
+//
+// Type parameters:
+//   - T: The element type, must be comparable
 type Set[T comparable] interface {
 	fmt.Stringer
-	// 集合长度
+	// Len returns the number of elements in the set.
 	Len() int
-	// 添加元素
+	// Append adds one or more elements to the set.
+	// Duplicate elements are ignored.
 	Append(...T)
-	// 移除元素
+	// Remove removes one or more elements from the set.
+	// Non-existent elements are ignored.
 	Remove(...T) bool
-	// 判断元素是否存在
+	// Contains checks if an element exists in the set.
 	Contains(T) bool
-	// 集合元素的切片
+	// Values returns a slice containing all elements in the set.
 	Values() []T
-	// 并集
+	// Union returns a new set containing all elements from both sets.
 	Union(Set[T]) Set[T]
-	// 交集
+	// Intersection returns a new set containing elements present in both sets.
 	Intersection(Set[T]) Set[T]
-	// 差集
+	// Difference returns a new set containing elements in this set but not in the other.
 	Difference(Set[T]) Set[T]
-	// 对称差集
+	// SymmetricDifference returns a new set containing elements present in either set but not both.
 	SymmetricDifference(Set[T]) Set[T]
 }
