@@ -6,7 +6,7 @@ BUILD_DIR={{.buildDir}}
 
 # 构建参数
 IMPORT_PKG={{.importPkg}}
-LDFLAGS=-ldflags "-X ${IMPORT_PKG}.Name=${Name} -X ${IMPORT_PKG}.Version=${VERSION} -X ${IMPORT_PKG}.BuildDate=${BUILD_DATE}"
+LDFLAGS=-ldflags "-X ${IMPORT_PKG}.name=${Name} -X ${IMPORT_PKG}.version=${VERSION} -X ${IMPORT_PKG}.buildDate=${BUILD_DATE}"
 
 # 设置目标平台
 PLATFORMS=linux-amd64 linux-arm64 windows-amd64 darwin-amd64 darwin-arm64
