@@ -333,3 +333,24 @@ func BenchmarkMemoryAccessPatterns(b *testing.B) {
 		}
 	})
 }
+
+// goos: linux
+// goarch: amd64
+// pkg: github.com/BYT0723/go-tools/ds
+// cpu: 12th Gen Intel(R) Core(TM) i7-12700H
+// BenchmarkBitMutexSingleLockUnlock-20                                 8672     121076 ns/op
+// BenchmarkBitMutexSingleTryLock-20                                    9898     121829 ns/op
+// BenchmarkBitMutexConcurrentSameBit-20                                4926     252847 ns/op
+// BenchmarkBitMutexConcurrentDifferentBits-20                          2444     456714 ns/op
+// BenchmarkNFSSingleLockUnlock-20                                      9470     118771 ns/op
+// BenchmarkNFSConcurrentSameBit-20                                     5863     204827 ns/op
+// BenchmarkShardBitMutexSingleLockUnlock-20                            9642     111949 ns/op
+// BenchmarkShardBitMutexConsequentialIndices-20                        5121     264077 ns/op
+// BenchmarkShardBitMutexSameShard-20                                   2606     409007 ns/op
+// BenchmarkShardBitMutexDifferentShards-20                             24830    48599  ns/op
+// BenchmarkCompareBitMutexVsShard/BitMutex-Concurrent-SameBit-20       4771     254379 ns/op
+// BenchmarkCompareBitMutexVsShard/ShardBitMutex-Concurrent-SameBit-20  6105     204021 ns/op
+// BenchmarkTryLockSuccessRate/BitMutex-HighContention-20               1900521  637.2  ns/op 50.00 %success
+// BenchmarkTryLockSuccessRate/ShardBitMutex-HighContention-20          1616216  715.2  ns/op 75.00 %success
+// BenchmarkMemoryAccessPatterns/BitMutex-LocalizedAccess-20            2371     515204 ns/op
+// BenchmarkMemoryAccessPatterns/ShardBitMutex-LocalizedAccess-20       4158     246724 ns/op
