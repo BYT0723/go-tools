@@ -25,7 +25,12 @@ func NewArrayStack[T any]() *ArrayStack[T] {
 // Returns the element and a boolean indicating if the stack was not empty.
 func (m *ArrayStack[T]) Pop() (value T, exist bool) {
 	value, exist = m.Peek()
+
+	var zero T
+	m.items[len(m.items)-1] = zero
+
 	m.items = m.items[:len(m.items)-1]
+
 	return
 }
 
