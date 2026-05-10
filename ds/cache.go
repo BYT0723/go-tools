@@ -50,6 +50,7 @@ func NewCache[T any](expire, cleanup time.Duration) *Cache[T] {
 	c.ctx, c.cf = context.WithCancel(context.Background())
 
 	if c.cleanup > 0 {
+		done := c.ctx.Done()
 		go func() {
 			t := time.NewTicker(c.cleanup)
 			defer t.Stop()
@@ -57,7 +58,7 @@ func NewCache[T any](expire, cleanup time.Duration) *Cache[T] {
 				select {
 				case <-t.C:
 					c.cleanExpireKey()
-				case <-c.ctx.Done():
+				case <-done:
 					return
 				}
 			}
@@ -149,6 +150,9 @@ func (c *Cache[T]) Delete(key string) {
 // Returns:
 //   - error: Always returns nil
 func (c *Cache[T]) Release() error {
+	c.l.Lock()
+	defer c.l.Unlock()
+
 	if c.cf != nil {
 		c.cf()
 		c.ctx = nil

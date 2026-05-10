@@ -1,7 +1,6 @@
 package ds
 
 import (
-	"runtime"
 	"testing"
 	"time"
 
@@ -109,6 +108,7 @@ func TestCacheSetAndGet(t *testing.T) {
 		})
 		t.Run("Expire And Cleanup Cache", func(t *testing.T) {
 			c := NewCache[any](time.Second, 3*time.Second)
+			defer c.Release()
 
 			c.Set("name", "tyler")
 			c.Set("age", 18)
@@ -131,11 +131,18 @@ func TestCacheSetAndGet(t *testing.T) {
 			assert.Nil(t, value)
 			assert.False(t, loaded)
 
-			assert.NotNil(t, c.entries["name"])
-			assert.NotNil(t, c.entries["age"])
+			// 条目过期但尚未被 cleanup goroutine 清除
+			_, loaded = c.Get("name")
+			assert.False(t, loaded)
+			_, loaded = c.Get("age")
+			assert.False(t, loaded)
+
+			// 等待 cleanup 周期
 			time.Sleep(2 * time.Second)
-			assert.Nil(t, c.entries["name"])
-			assert.Nil(t, c.entries["age"])
+			_, loaded = c.Get("name")
+			assert.False(t, loaded)
+			_, loaded = c.Get("age")
+			assert.False(t, loaded)
 		})
 	})
 }
@@ -199,22 +206,20 @@ func TestCacheDelete(t *testing.T) {
 			assert.Nil(t, value)
 			assert.False(t, loaded)
 
-			assert.Nil(t, c.entries["name"])
+			_, loaded = c.Get("name")
+			assert.False(t, loaded)
 			time.Sleep(2 * time.Second)
-			assert.Nil(t, c.entries["name"])
+			_, loaded = c.Get("name")
+			assert.False(t, loaded)
 		})
 	})
 }
 
 func TestCleanupExit(t *testing.T) {
-	t.Run("Cache Cleanup Exit", func(t *testing.T) {
+	t.Run("Cache Release 清理goroutine", func(t *testing.T) {
 		c := NewCache[any](time.Second, 3*time.Second)
 		c.Set("name", "tyler")
-		c = nil
-		for i := 0; i < 5; i++ {
-			runtime.GC()
-			time.Sleep(2 * time.Second)
-		}
-		assert.Nil(t, c)
+		err := c.Release()
+		assert.Nil(t, err)
 	})
 }

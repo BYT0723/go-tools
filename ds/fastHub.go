@@ -1,7 +1,6 @@
 package ds
 
 import (
-	"maps"
 	"sync"
 	"sync/atomic"
 )
@@ -66,10 +65,13 @@ func (b *FastHub[T]) Publish(v T) error {
 		b.mutex.Unlock()
 		return err
 	}
-	subs := maps.Values(b.subscribers)
+	subs := make([]*Subscription[T], 0, len(b.subscribers))
+	for _, sub := range b.subscribers {
+		subs = append(subs, sub)
+	}
 	b.mutex.Unlock()
 
-	for sub := range subs {
+	for _, sub := range subs {
 		select {
 		case sub.c <- v:
 		default:
