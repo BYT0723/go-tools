@@ -5,230 +5,216 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCacheSetAndGet(t *testing.T) {
-	Convey("Cache Set And Get", t, func() {
-		Convey("No Expire Cache", func() {
-			Convey("Set And Get", func() {
+	t.Run("Cache Set And Get", func(t *testing.T) {
+		t.Run("No Expire Cache", func(t *testing.T) {
+			t.Run("Set And Get", func(t *testing.T) {
 				c := NewCache[any](0, 0)
 
 				c.Set("name", "tyler")
 				c.Set("age", 18)
 
 				value, loaded := c.Get("name")
-				So(value, ShouldEqual, "tyler")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "tyler", value)
+				assert.True(t, loaded)
 
 				value, loaded = c.Get("age")
-				So(value, ShouldEqual, 18)
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, 18, value)
+				assert.True(t, loaded)
 			})
-			Convey("Set And ReSet And Get", func() {
+			t.Run("Set And ReSet And Get", func(t *testing.T) {
 				c := NewCache[any](0, 0)
 
 				c.Set("name", "tyler")
 				c.Set("age", 18)
 
 				value, loaded := c.Get("name")
-				So(value, ShouldEqual, "tyler")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "tyler", value)
+				assert.True(t, loaded)
 
 				value, loaded = c.Get("age")
-				So(value, ShouldEqual, 18)
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, 18, value)
+				assert.True(t, loaded)
 
-				// reset key value
 				c.Set("name", "walter")
 				c.Set("age", 10)
 
 				value, loaded = c.Get("name")
-				So(value, ShouldEqual, "walter")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "walter", value)
+				assert.True(t, loaded)
 
 				value, loaded = c.Get("age")
-				So(value, ShouldEqual, 10)
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, 10, value)
+				assert.True(t, loaded)
 			})
 		})
-		Convey("Expire Cache", func() {
-			Convey("Set And Get", func() {
+		t.Run("Expire Cache", func(t *testing.T) {
+			t.Run("Set And Get", func(t *testing.T) {
 				c := NewCache[any](time.Second, 0)
 
 				c.Set("name", "tyler")
 				c.Set("age", 18)
 
 				value, loaded := c.Get("name")
-				So(value, ShouldEqual, "tyler")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "tyler", value)
+				assert.True(t, loaded)
 
 				value, loaded = c.Get("age")
-				So(value, ShouldEqual, 18)
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, 18, value)
+				assert.True(t, loaded)
 
-				// 等待key过期
 				time.Sleep(2 * time.Second)
 
 				value, loaded = c.Get("name")
-				So(value, ShouldBeNil)
-				So(loaded, ShouldBeFalse)
+				assert.Nil(t, value)
+				assert.False(t, loaded)
 
 				value, loaded = c.Get("age")
-				So(value, ShouldBeNil)
-				So(loaded, ShouldBeFalse)
+				assert.Nil(t, value)
+				assert.False(t, loaded)
 			})
-			Convey("Set And Reset And Get", func() {
+			t.Run("Set And Reset And Get", func(t *testing.T) {
 				c := NewCache[any](time.Second, 0)
 
 				c.Set("name", "tyler")
 				value, loaded := c.Get("name")
 
-				So(value, ShouldEqual, "tyler")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "tyler", value)
+				assert.True(t, loaded)
 
-				// 等待key过期
 				time.Sleep(2 * time.Second)
 				value, loaded = c.Get("name")
-				So(value, ShouldBeNil)
-				So(loaded, ShouldBeFalse)
+				assert.Nil(t, value)
+				assert.False(t, loaded)
 
-				// 重置key
 				c.Set("name", "walter")
 				value, loaded = c.Get("name")
 
-				So(value, ShouldEqual, "walter")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "walter", value)
+				assert.True(t, loaded)
 
-				// 重置key
 				c.Set("name", "tyler")
 				value, loaded = c.Get("name")
-				So(value, ShouldEqual, "tyler")
-				So(loaded, ShouldBeTrue)
+				assert.Equal(t, "tyler", value)
+				assert.True(t, loaded)
 
-				// 等待key过期
 				time.Sleep(2 * time.Second)
 				value, loaded = c.Get("name")
-				So(value, ShouldBeNil)
-				So(loaded, ShouldBeFalse)
+				assert.Nil(t, value)
+				assert.False(t, loaded)
 			})
 		})
-		Convey("Expire And Cleanup Cache", func() {
+		t.Run("Expire And Cleanup Cache", func(t *testing.T) {
 			c := NewCache[any](time.Second, 3*time.Second)
 
 			c.Set("name", "tyler")
 			c.Set("age", 18)
 
 			value, loaded := c.Get("name")
-			So(value, ShouldEqual, "tyler")
-			So(loaded, ShouldBeTrue)
+			assert.Equal(t, "tyler", value)
+			assert.True(t, loaded)
 
 			value, loaded = c.Get("age")
-			So(value, ShouldEqual, 18)
-			So(loaded, ShouldBeTrue)
+			assert.Equal(t, 18, value)
+			assert.True(t, loaded)
 
-			// 等待key过期
 			time.Sleep(2 * time.Second)
 			value, loaded = c.Get("name")
 
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 
 			value, loaded = c.Get("age")
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 
-			So(c.entries["name"], ShouldNotBeNil)
-			So(c.entries["age"], ShouldNotBeNil)
-			// 等待key清除
+			assert.NotNil(t, c.entries["name"])
+			assert.NotNil(t, c.entries["age"])
 			time.Sleep(2 * time.Second)
-			So(c.entries["name"], ShouldBeNil)
-			So(c.entries["age"], ShouldBeNil)
+			assert.Nil(t, c.entries["name"])
+			assert.Nil(t, c.entries["age"])
 		})
 	})
 }
 
 func TestCacheDelete(t *testing.T) {
-	Convey("Cache Set", t, func() {
-		Convey("No Expire Cache", func() {
+	t.Run("Cache Set", func(t *testing.T) {
+		t.Run("No Expire Cache", func(t *testing.T) {
 			c := NewCache[any](0, 0)
 
 			c.Set("name", "tyler")
 			value, loaded := c.Get("name")
 
-			So(value, ShouldEqual, "tyler")
-			So(loaded, ShouldBeTrue)
+			assert.Equal(t, "tyler", value)
+			assert.True(t, loaded)
 
 			c.Delete("name")
 			value, loaded = c.Get("name")
 
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 		})
-		Convey("Expire Cache", func() {
+		t.Run("Expire Cache", func(t *testing.T) {
 			c := NewCache[any](time.Second, 0)
 
 			c.Set("name", "tyler")
 			value, loaded := c.Get("name")
 
-			So(value, ShouldEqual, "tyler")
-			So(loaded, ShouldBeTrue)
+			assert.Equal(t, "tyler", value)
+			assert.True(t, loaded)
 
-			// 清除key
 			c.Delete("name")
 			value, loaded = c.Get("name")
 
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 
-			// 等待过期
 			time.Sleep(2 * time.Second)
 			value, loaded = c.Get("name")
 
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 		})
-		Convey("Expire And Cleanup Cache", func() {
+		t.Run("Expire And Cleanup Cache", func(t *testing.T) {
 			c := NewCache[any](time.Second, 3*time.Second)
 
 			c.Set("name", "tyler")
 			value, loaded := c.Get("name")
 
-			So(value, ShouldEqual, "tyler")
-			So(loaded, ShouldBeTrue)
+			assert.Equal(t, "tyler", value)
+			assert.True(t, loaded)
 
-			// 清除key
 			c.Delete("name")
 			value, loaded = c.Get("name")
 
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 
-			// 等待过期
 			time.Sleep(2 * time.Second)
 			value, loaded = c.Get("name")
 
-			So(value, ShouldBeNil)
-			So(loaded, ShouldBeFalse)
+			assert.Nil(t, value)
+			assert.False(t, loaded)
 
-			So(c.entries["name"], ShouldBeNil)
-			// 等待key清除
+			assert.Nil(t, c.entries["name"])
 			time.Sleep(2 * time.Second)
-			So(c.entries["name"], ShouldBeNil)
+			assert.Nil(t, c.entries["name"])
 		})
 	})
 }
 
 func TestCleanupExit(t *testing.T) {
-	Convey("Cache Cleanup Exit", t, func() {
+	t.Run("Cache Cleanup Exit", func(t *testing.T) {
 		c := NewCache[any](time.Second, 3*time.Second)
 		c.Set("name", "tyler")
 		c = nil
-		// 强制 GC 多次，确保回收
 		for i := 0; i < 5; i++ {
 			runtime.GC()
 			time.Sleep(2 * time.Second)
 		}
-		So(c, ShouldBeNil)
+		assert.Nil(t, c)
 	})
 }

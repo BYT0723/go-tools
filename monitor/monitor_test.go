@@ -5,70 +5,70 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSeverityString(t *testing.T) {
-	Convey("Severity String 测试", t, func() {
-		Convey("各个级别的字符串表示", func() {
-			So(SeverityDebug.String(), ShouldEqual, "DEBUG")
-			So(SeverityInfo.String(), ShouldEqual, "INFO")
-			So(SeverityWarning.String(), ShouldEqual, "WARNING")
-			So(SeverityError.String(), ShouldEqual, "ERROR")
-			So(SeverityCritical.String(), ShouldEqual, "CRITICAL")
+	t.Run("Severity String 测试", func(t *testing.T) {
+		t.Run("各个级别的字符串表示", func(t *testing.T) {
+			assert.Equal(t, "DEBUG", SeverityDebug.String())
+			assert.Equal(t, "INFO", SeverityInfo.String())
+			assert.Equal(t, "WARNING", SeverityWarning.String())
+			assert.Equal(t, "ERROR", SeverityError.String())
+			assert.Equal(t, "CRITICAL", SeverityCritical.String())
 		})
 
-		Convey("未知级别", func() {
-			So(Severity(99).String(), ShouldEqual, "UNKNOWN")
+		t.Run("未知级别", func(t *testing.T) {
+			assert.Equal(t, "UNKNOWN", Severity(99).String())
 		})
 	})
 }
 
 func TestSourceConstants(t *testing.T) {
-	Convey("Source 常量测试", t, func() {
-		So(string(SourceInternal), ShouldEqual, "internal")
-		So(string(SourceAlertRule), ShouldEqual, "alert_rule")
+	t.Run("Source 常量测试", func(t *testing.T) {
+		assert.Equal(t, "internal", string(SourceInternal))
+		assert.Equal(t, "alert_rule", string(SourceAlertRule))
 	})
 }
 
 func TestInternalAlert(t *testing.T) {
-	Convey("InternalAlert 测试", t, func() {
-		Convey("创建内部告警", func() {
+	t.Run("InternalAlert 测试", func(t *testing.T) {
+		t.Run("创建内部告警", func(t *testing.T) {
 			err := fmt.Errorf("test error")
 			alert := InternalAlert(err)
-			So(alert, ShouldNotBeNil)
-			So(alert.Severity, ShouldEqual, SeverityError)
-			So(alert.Source, ShouldEqual, SourceInternal)
-			So(alert.Err, ShouldEqual, err)
-			So(alert.Ts, ShouldNotBeNil)
+			assert.NotNil(t, alert)
+			assert.Equal(t, SeverityError, alert.Severity)
+			assert.Equal(t, SourceInternal, alert.Source)
+			assert.Equal(t, err, alert.Err)
+			assert.NotNil(t, alert.Ts)
 		})
 	})
 }
 
 func TestNewAlert(t *testing.T) {
-	Convey("NewAlert 测试", t, func() {
-		Convey("创建自定义告警", func() {
+	t.Run("NewAlert 测试", func(t *testing.T) {
+		t.Run("创建自定义告警", func(t *testing.T) {
 			payload := map[string]string{"key": "value"}
 			alert := NewAlert(SeverityWarning, SourceAlertRule, "test description", payload)
-			So(alert, ShouldNotBeNil)
-			So(alert.Severity, ShouldEqual, SeverityWarning)
-			So(alert.Source, ShouldEqual, SourceAlertRule)
-			So(alert.Descr, ShouldEqual, "test description")
-			So(alert.Payload, ShouldEqual, payload)
-			So(alert.Ts, ShouldNotBeNil)
+			assert.NotNil(t, alert)
+			assert.Equal(t, SeverityWarning, alert.Severity)
+			assert.Equal(t, SourceAlertRule, alert.Source)
+			assert.Equal(t, "test description", alert.Descr)
+			assert.Equal(t, payload, alert.Payload)
+			assert.NotNil(t, alert.Ts)
 		})
 
-		Convey("创建不同级别的告警", func() {
+		t.Run("创建不同级别的告警", func(t *testing.T) {
 			alert := NewAlert(SeverityCritical, SourceInternal, "critical alert", nil)
-			So(alert.Severity, ShouldEqual, SeverityCritical)
-			So(alert.Source, ShouldEqual, SourceInternal)
+			assert.Equal(t, SeverityCritical, alert.Severity)
+			assert.Equal(t, SourceInternal, alert.Source)
 		})
 	})
 }
 
 func TestAlertRule(t *testing.T) {
-	Convey("AlertRule 测试", t, func() {
-		Convey("匹配规则返回告警", func() {
+	t.Run("AlertRule 测试", func(t *testing.T) {
+		t.Run("匹配规则返回告警", func(t *testing.T) {
 			var rule AlertRule[int] = func(payload *int) (*Alert, bool) {
 				if *payload > 10 {
 					return NewAlert(SeverityWarning, SourceAlertRule, "value too high", payload), true
@@ -78,12 +78,12 @@ func TestAlertRule(t *testing.T) {
 
 			val := 15
 			alert, matched := rule(&val)
-			So(matched, ShouldBeTrue)
-			So(alert, ShouldNotBeNil)
-			So(alert.Descr, ShouldEqual, "value too high")
+			assert.True(t, matched)
+			assert.NotNil(t, alert)
+			assert.Equal(t, "value too high", alert.Descr)
 		})
 
-		Convey("不匹配规则返回false", func() {
+		t.Run("不匹配规则返回false", func(t *testing.T) {
 			var rule AlertRule[int] = func(payload *int) (*Alert, bool) {
 				if *payload > 10 {
 					return NewAlert(SeverityWarning, SourceAlertRule, "high", payload), true
@@ -93,27 +93,27 @@ func TestAlertRule(t *testing.T) {
 
 			val := 5
 			alert, matched := rule(&val)
-			So(matched, ShouldBeFalse)
-			So(alert, ShouldBeNil)
+			assert.False(t, matched)
+			assert.Nil(t, alert)
 		})
 	})
 }
 
 func TestMonitorInterface(t *testing.T) {
-	Convey("Monitor 接口定义验证", t, func() {
-		Convey("接口包含所需方法", func() {
-			So(true, ShouldBeTrue)
+	t.Run("Monitor 接口定义验证", func(t *testing.T) {
+		t.Run("接口包含所需方法", func(t *testing.T) {
+			assert.True(t, true)
 		})
 	})
 }
 
 func TestAlertTimestamp(t *testing.T) {
-	Convey("Alert 时间戳测试", t, func() {
+	t.Run("Alert 时间戳测试", func(t *testing.T) {
 		before := time.Now()
 		alert := InternalAlert(fmt.Errorf("test"))
 		after := time.Now()
 
-		So(alert.Ts.After(before) || alert.Ts.Equal(before), ShouldBeTrue)
-		So(alert.Ts.Before(after) || alert.Ts.Equal(after), ShouldBeTrue)
+		assert.True(t, alert.Ts.After(before) || alert.Ts.Equal(before))
+		assert.True(t, alert.Ts.Before(after) || alert.Ts.Equal(after))
 	})
 }

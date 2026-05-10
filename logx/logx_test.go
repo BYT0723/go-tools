@@ -8,194 +8,194 @@ import (
 
 	"github.com/BYT0723/go-tools/logx/logcore"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFieldBuilders(t *testing.T) {
-	Convey("Field 构建函数测试", t, func() {
-		Convey("Any", func() {
+	t.Run("Field 构建函数测试", func(t *testing.T) {
+		t.Run("Any", func(t *testing.T) {
 			f := Any("key", 42)
-			So(f.Key, ShouldEqual, "key")
-			So(f.Value, ShouldEqual, 42)
+			assert.Equal(t, "key", f.Key)
+			assert.Equal(t, 42, f.Value)
 		})
 
-		Convey("Bool", func() {
+		t.Run("Bool", func(t *testing.T) {
 			f := Bool("active", true)
-			So(f.Key, ShouldEqual, "active")
-			So(f.Kind, ShouldEqual, reflect.Bool)
-			So(f.Value, ShouldEqual, true)
+			assert.Equal(t, "active", f.Key)
+			assert.Equal(t, reflect.Bool, f.Kind)
+			assert.Equal(t, true, f.Value)
 		})
 
-		Convey("String", func() {
+		t.Run("String", func(t *testing.T) {
 			f := String("name", "test")
-			So(f.Key, ShouldEqual, "name")
-			So(f.Kind, ShouldEqual, reflect.String)
-			So(f.Value, ShouldEqual, "test")
+			assert.Equal(t, "name", f.Key)
+			assert.Equal(t, reflect.String, f.Kind)
+			assert.Equal(t, "test", f.Value)
 		})
 
-		Convey("Int", func() {
+		t.Run("Int", func(t *testing.T) {
 			f := Int("count", 42)
-			So(f.Key, ShouldEqual, "count")
-			So(f.Kind, ShouldEqual, reflect.Int)
-			So(f.Value, ShouldEqual, 42)
+			assert.Equal(t, "count", f.Key)
+			assert.Equal(t, reflect.Int, f.Kind)
+			assert.Equal(t, 42, f.Value)
 		})
 
-		Convey("Int8", func() {
+		t.Run("Int8", func(t *testing.T) {
 			f := Int8("val", 8)
-			So(f.Key, ShouldEqual, "val")
-			So(f.Kind, ShouldEqual, reflect.Int8)
-			So(f.Value, ShouldEqual, int8(8))
+			assert.Equal(t, "val", f.Key)
+			assert.Equal(t, reflect.Int8, f.Kind)
+			assert.Equal(t, int8(8), f.Value)
 		})
 
-		Convey("Int16", func() {
+		t.Run("Int16", func(t *testing.T) {
 			f := Int16("val", 16)
-			So(f.Kind, ShouldEqual, reflect.Int16)
-			So(f.Value, ShouldEqual, int16(16))
+			assert.Equal(t, reflect.Int16, f.Kind)
+			assert.Equal(t, int16(16), f.Value)
 		})
 
-		Convey("Int32", func() {
+		t.Run("Int32", func(t *testing.T) {
 			f := Int32("val", 32)
-			So(f.Kind, ShouldEqual, reflect.Int32)
-			So(f.Value, ShouldEqual, int32(32))
+			assert.Equal(t, reflect.Int32, f.Kind)
+			assert.Equal(t, int32(32), f.Value)
 		})
 
-		Convey("Int64", func() {
+		t.Run("Int64", func(t *testing.T) {
 			f := Int64("val", 64)
-			So(f.Kind, ShouldEqual, reflect.Int64)
-			So(f.Value, ShouldEqual, int64(64))
+			assert.Equal(t, reflect.Int64, f.Kind)
+			assert.Equal(t, int64(64), f.Value)
 		})
 
-		Convey("Uint", func() {
+		t.Run("Uint", func(t *testing.T) {
 			f := Uint("val", 100)
-			So(f.Kind, ShouldEqual, reflect.Uint)
-			So(f.Value, ShouldEqual, uint(100))
+			assert.Equal(t, reflect.Uint, f.Kind)
+			assert.Equal(t, uint(100), f.Value)
 		})
 
-		Convey("Uint8", func() {
+		t.Run("Uint8", func(t *testing.T) {
 			f := Uint8("val", 8)
-			So(f.Kind, ShouldEqual, reflect.Uint8)
-			So(f.Value, ShouldEqual, uint8(8))
+			assert.Equal(t, reflect.Uint8, f.Kind)
+			assert.Equal(t, uint8(8), f.Value)
 		})
 
-		Convey("Uint16", func() {
+		t.Run("Uint16", func(t *testing.T) {
 			f := Uint16("val", 16)
-			So(f.Kind, ShouldEqual, reflect.Uint16)
+			assert.Equal(t, reflect.Uint16, f.Kind)
 		})
 
-		Convey("Uint32", func() {
+		t.Run("Uint32", func(t *testing.T) {
 			f := Uint32("val", 32)
-			So(f.Kind, ShouldEqual, reflect.Uint32)
+			assert.Equal(t, reflect.Uint32, f.Kind)
 		})
 
-		Convey("Uint64", func() {
+		t.Run("Uint64", func(t *testing.T) {
 			f := Uint64("val", 64)
-			So(f.Kind, ShouldEqual, reflect.Uint64)
+			assert.Equal(t, reflect.Uint64, f.Kind)
 		})
 
-		Convey("Float32", func() {
+		t.Run("Float32", func(t *testing.T) {
 			f := Float32("val", 3.14)
-			So(f.Kind, ShouldEqual, reflect.Float32)
-			So(f.Value, ShouldEqual, float32(3.14))
+			assert.Equal(t, reflect.Float32, f.Kind)
+			assert.Equal(t, float32(3.14), f.Value)
 		})
 
-		Convey("Float64", func() {
+		t.Run("Float64", func(t *testing.T) {
 			f := Float64("val", 3.14159)
-			So(f.Kind, ShouldEqual, reflect.Float64)
-			So(f.Value, ShouldEqual, 3.14159)
+			assert.Equal(t, reflect.Float64, f.Kind)
+			assert.Equal(t, 3.14159, f.Value)
 		})
 
-		Convey("Err", func() {
+		t.Run("Err", func(t *testing.T) {
 			e := errors.New("test error")
 			f := Err(e)
-			So(f.Key, ShouldEqual, "error")
-			So(f.Value, ShouldEqual, "test error")
+			assert.Equal(t, "error", f.Key)
+			assert.Equal(t, "test error", f.Value)
 		})
 
-		Convey("Duration", func() {
+		t.Run("Duration", func(t *testing.T) {
 			f := Duration("elapsed", time.Second)
-			So(f.Key, ShouldEqual, "elapsed")
-			So(f.Value, ShouldEqual, time.Second)
+			assert.Equal(t, "elapsed", f.Key)
+			assert.Equal(t, time.Second, f.Value)
 		})
 	})
 }
 
 func TestLoggerType(t *testing.T) {
-	Convey("LoggerType 测试", t, func() {
-		So(TypeZap, ShouldEqual, LoggerType(0))
-		So(TypeZeroLog, ShouldEqual, LoggerType(1))
-		So(TypeInvalid, ShouldEqual, LoggerType(15))
+	t.Run("LoggerType 测试", func(t *testing.T) {
+		assert.Equal(t, LoggerType(0), TypeZap)
+		assert.Equal(t, LoggerType(1), TypeZeroLog)
+		assert.Equal(t, LoggerType(15), TypeInvalid)
 	})
 }
 
 func TestInitConf(t *testing.T) {
-	Convey("InitConf 测试", t, func() {
+	t.Run("InitConf 测试", func(t *testing.T) {
 		cfg := &InitConf{}
-		So(cfg, ShouldNotBeNil)
+		assert.NotNil(t, cfg)
 	})
 }
 
 func TestOptionFuncs(t *testing.T) {
-	Convey("Option 函数测试", t, func() {
-		Convey("WithLoggerType 无效类型默认TypeZap", func() {
+	t.Run("Option 函数测试", func(t *testing.T) {
+		t.Run("WithLoggerType 无效类型默认TypeZap", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithLoggerType(TypeInvalid)(cfg)
-			So(cfg.Type, ShouldEqual, TypeZap)
+			assert.Equal(t, TypeZap, cfg.Type)
 		})
 
-		Convey("WithLoggerType TypeZeroLog", func() {
+		t.Run("WithLoggerType TypeZeroLog", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithLoggerType(TypeZeroLog)(cfg)
-			So(cfg.Type, ShouldEqual, TypeZeroLog)
+			assert.Equal(t, TypeZeroLog, cfg.Type)
 		})
 
-		Convey("WithLevel", func() {
+		t.Run("WithLevel", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithLevel("error")(cfg)
-			So(cfg.LogCfg.Level, ShouldEqual, "error")
+			assert.Equal(t, "error", cfg.LogCfg.Level)
 		})
 
-		Convey("WithName", func() {
+		t.Run("WithName", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithName("myapp")(cfg)
-			So(cfg.LogCfg.Name, ShouldEqual, "myapp")
+			assert.Equal(t, "myapp", cfg.LogCfg.Name)
 		})
 
-		Convey("WithPath", func() {
+		t.Run("WithPath", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithPath("/var/log")(cfg)
-			So(cfg.LogCfg.Dir, ShouldEqual, "/var/log")
+			assert.Equal(t, "/var/log", cfg.LogCfg.Dir)
 		})
 
-		Convey("WithMaxBackups", func() {
+		t.Run("WithMaxBackups", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithMaxBackups(100)(cfg)
-			So(cfg.LogCfg.MaxBackups, ShouldEqual, 100)
+			assert.Equal(t, 100, cfg.LogCfg.MaxBackups)
 		})
 
-		Convey("WithMaxSize", func() {
+		t.Run("WithMaxSize", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithMaxSize(500)(cfg)
-			So(cfg.LogCfg.MaxSize, ShouldEqual, 500)
+			assert.Equal(t, 500, cfg.LogCfg.MaxSize)
 		})
 
-		Convey("WithMaxAge", func() {
+		t.Run("WithMaxAge", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithMaxAge(30)(cfg)
-			So(cfg.LogCfg.MaxAge, ShouldEqual, 30)
+			assert.Equal(t, 30, cfg.LogCfg.MaxAge)
 		})
 
-		Convey("WithConf 合并配置并清理Ext", func() {
+		t.Run("WithConf 合并配置并清理Ext", func(t *testing.T) {
 			cfg := &InitConf{LogCfg: logcore.DefaultLoggerConf()}
 			WithConf(&logcore.LoggerConf{Name: "merged", Ext: ".log"})(cfg)
-			So(cfg.LogCfg.Name, ShouldEqual, "merged")
-			So(cfg.LogCfg.Ext, ShouldEqual, ".log")
+			assert.Equal(t, "merged", cfg.LogCfg.Name)
+			assert.Equal(t, ".log", cfg.LogCfg.Ext)
 		})
 	})
 }
 
 func TestFieldTypeAlias(t *testing.T) {
-	Convey("Field 类型别名测试", t, func() {
+	t.Run("Field 类型别名测试", func(t *testing.T) {
 		var f Field = logcore.Field{Key: "k", Value: "v"}
-		So(f.Key, ShouldEqual, "k")
+		assert.Equal(t, "k", f.Key)
 	})
 }

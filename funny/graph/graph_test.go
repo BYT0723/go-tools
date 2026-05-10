@@ -3,43 +3,43 @@ package graph
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDefaultEdge(t *testing.T) {
-	Convey("DefaultEdge 测试", t, func() {
-		So(DefaultEdge, ShouldNotBeNil)
-		So(DefaultEdge.Zero, ShouldEqual, " ")
-		So(DefaultEdge.X, ShouldEqual, " ")
-		So(DefaultEdge.Y, ShouldEqual, " ")
-		So(DefaultEdge.FC, ShouldEqual, "*")
-		So(DefaultEdge.Scale, ShouldEqual, " ")
+	t.Run("DefaultEdge 测试", func(t *testing.T) {
+		assert.NotNil(t, DefaultEdge)
+		assert.Equal(t, " ", DefaultEdge.Zero)
+		assert.Equal(t, " ", DefaultEdge.X)
+		assert.Equal(t, " ", DefaultEdge.Y)
+		assert.Equal(t, "*", DefaultEdge.FC)
+		assert.Equal(t, " ", DefaultEdge.Scale)
 	})
 }
 
 func TestStandbyEdge(t *testing.T) {
-	Convey("StandbyEdge 测试", t, func() {
-		So(StandbyEdge, ShouldNotBeNil)
-		So(StandbyEdge.Zero, ShouldEqual, "+")
-		So(StandbyEdge.X, ShouldEqual, "-")
-		So(StandbyEdge.Y, ShouldEqual, "|")
-		So(StandbyEdge.FC, ShouldEqual, "*")
-		So(StandbyEdge.Scale, ShouldEqual, "+")
+	t.Run("StandbyEdge 测试", func(t *testing.T) {
+		assert.NotNil(t, StandbyEdge)
+		assert.Equal(t, "+", StandbyEdge.Zero)
+		assert.Equal(t, "-", StandbyEdge.X)
+		assert.Equal(t, "|", StandbyEdge.Y)
+		assert.Equal(t, "*", StandbyEdge.FC)
+		assert.Equal(t, "+", StandbyEdge.Scale)
 	})
 }
 
 func TestEdgeStruct(t *testing.T) {
-	Convey("Edge 结构测试", t, func() {
+	t.Run("Edge 结构测试", func(t *testing.T) {
 		e := &Edge{Zero: "0", X: "-", Y: "|", FC: "#", Scale: "+"}
-		So(e.Zero, ShouldEqual, "0")
-		So(e.FC, ShouldEqual, "#")
+		assert.Equal(t, "0", e.Zero)
+		assert.Equal(t, "#", e.FC)
 	})
 }
 
 func TestGraphDefaultEdge(t *testing.T) {
-	Convey("Graph 默认Edge测试", t, func() {
+	t.Run("Graph 默认Edge测试", func(t *testing.T) {
 		g := &Graph{XScale: 0.1, YScale: 0.1}
-		So(g.Edge, ShouldBeNil)
+		assert.Nil(t, g.Edge)
 
 		// Draw sets default edge if nil (may fail if not in terminal)
 		g.Draw(func(x, y float64) bool { return false })

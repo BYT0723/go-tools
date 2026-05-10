@@ -4,90 +4,90 @@ import (
 	"bytes"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGZipCompressor(t *testing.T) {
-	Convey("GZipCompressor 测试", t, func() {
-		Convey("默认压缩", func() {
+	t.Run("GZipCompressor 测试", func(t *testing.T) {
+		t.Run("默认压缩", func(t *testing.T) {
 			c := GZipCompressor()
 			var buf bytes.Buffer
 			err := c.Compress(&buf, []byte("hello world"))
-			So(err, ShouldBeNil)
-			So(buf.Len(), ShouldBeGreaterThan, 0)
+			assert.Nil(t, err)
+			assert.Greater(t, buf.Len(), 0)
 		})
 
-		Convey("RequestHeader", func() {
+		t.Run("RequestHeader", func(t *testing.T) {
 			c := GZipCompressor()
 			h := c.RequestHeader()
-			So(h.Get("Content-Encoding"), ShouldEqual, "gzip")
+			assert.Equal(t, "gzip", h.Get("Content-Encoding"))
 		})
 
-		Convey("指定压缩级别", func() {
+		t.Run("指定压缩级别", func(t *testing.T) {
 			c := GZipCompressorWithLevel(9)
 			var buf bytes.Buffer
 			err := c.Compress(&buf, []byte("hello world"))
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 	})
 }
 
 func TestDeflateCompressor(t *testing.T) {
-	Convey("DeflateCompressor 测试", t, func() {
-		Convey("默认压缩", func() {
+	t.Run("DeflateCompressor 测试", func(t *testing.T) {
+		t.Run("默认压缩", func(t *testing.T) {
 			c := DeflateCompressor(6)
 			var buf bytes.Buffer
 			err := c.Compress(&buf, []byte("hello world"))
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("RequestHeader", func() {
+		t.Run("RequestHeader", func(t *testing.T) {
 			c := DeflateCompressor(6)
 			h := c.RequestHeader()
-			So(h.Get("Content-Encoding"), ShouldEqual, "deflate")
+			assert.Equal(t, "deflate", h.Get("Content-Encoding"))
 		})
 	})
 }
 
 func TestBrotliCompressor(t *testing.T) {
-	Convey("BrotliCompressor 测试", t, func() {
-		Convey("默认压缩", func() {
+	t.Run("BrotliCompressor 测试", func(t *testing.T) {
+		t.Run("默认压缩", func(t *testing.T) {
 			c := BrotliCompressor()
 			var buf bytes.Buffer
 			err := c.Compress(&buf, []byte("hello world"))
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("RequestHeader", func() {
+		t.Run("RequestHeader", func(t *testing.T) {
 			c := BrotliCompressor()
 			h := c.RequestHeader()
-			So(h.Get("Content-Encoding"), ShouldEqual, "br")
+			assert.Equal(t, "br", h.Get("Content-Encoding"))
 		})
 	})
 }
 
 func TestDecompressRoundTrip(t *testing.T) {
-	Convey("压缩测试", t, func() {
-		Convey("gzip 压缩产生非空输出", func() {
+	t.Run("压缩测试", func(t *testing.T) {
+		t.Run("gzip 压缩产生非空输出", func(t *testing.T) {
 			c := GZipCompressor()
 			var compressed bytes.Buffer
 			err := c.Compress(&compressed, []byte("hello world"))
-			So(err, ShouldBeNil)
-			So(compressed.Len(), ShouldBeGreaterThan, 0)
+			assert.Nil(t, err)
+			assert.Greater(t, compressed.Len(), 0)
 		})
 
-		Convey("deflate 压缩不返回错误", func() {
+		t.Run("deflate 压缩不返回错误", func(t *testing.T) {
 			c := DeflateCompressor(6)
 			var compressed bytes.Buffer
 			err := c.Compress(&compressed, []byte("hello world"))
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("brotli 压缩不返回错误", func() {
+		t.Run("brotli 压缩不返回错误", func(t *testing.T) {
 			c := BrotliCompressor()
 			var compressed bytes.Buffer
 			err := c.Compress(&compressed, []byte("hello world"))
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 	})
 }

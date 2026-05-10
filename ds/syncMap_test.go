@@ -4,71 +4,71 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSyncMapStoreLoad(t *testing.T) {
-	Convey("SyncMap Store/Load 测试", t, func() {
-		Convey("Store 后 Load 成功", func() {
+	t.Run("SyncMap Store/Load 测试", func(t *testing.T) {
+		t.Run("Store 后 Load 成功", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
 			v, ok := m.Load("key1")
-			So(ok, ShouldBeTrue)
-			So(v, ShouldEqual, 100)
+			assert.True(t, ok)
+			assert.Equal(t, 100, v)
 		})
 
-		Convey("Load 不存在的key返回false", func() {
+		t.Run("Load 不存在的key返回false", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			v, ok := m.Load("nonexistent")
-			So(ok, ShouldBeFalse)
-			So(v, ShouldEqual, 0)
+			assert.False(t, ok)
+			assert.Equal(t, 0, v)
 		})
 	})
 }
 
 func TestSyncMapDelete(t *testing.T) {
-	Convey("SyncMap Delete 测试", t, func() {
-		Convey("Delete 已存在的key返回true", func() {
+	t.Run("SyncMap Delete 测试", func(t *testing.T) {
+		t.Run("Delete 已存在的key返回true", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.Delete("key1"), ShouldBeTrue)
+			assert.True(t, m.Delete("key1"))
 			_, ok := m.Load("key1")
-			So(ok, ShouldBeFalse)
+			assert.False(t, ok)
 		})
 
-		Convey("Delete 不存在的key仍返回true", func() {
+		t.Run("Delete 不存在的key仍返回true", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
-			So(m.Delete("key1"), ShouldBeTrue)
+			assert.True(t, m.Delete("key1"))
 		})
 	})
 }
 
 func TestSyncMapSwap(t *testing.T) {
-	Convey("SyncMap Swap 测试", t, func() {
-		Convey("Swap 已存在的key返回旧值", func() {
+	t.Run("SyncMap Swap 测试", func(t *testing.T) {
+		t.Run("Swap 已存在的key返回旧值", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
 			old, loaded := m.Swap("key1", 200)
-			So(loaded, ShouldBeTrue)
-			So(old, ShouldEqual, 100)
+			assert.True(t, loaded)
+			assert.Equal(t, 100, old)
 			v, _ := m.Load("key1")
-			So(v, ShouldEqual, 200)
+			assert.Equal(t, 200, v)
 		})
 
-		Convey("Swap 不存在的key loaded返回false", func() {
+		t.Run("Swap 不存在的key loaded返回false", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			old, loaded := m.Swap("key1", 200)
-			So(loaded, ShouldBeFalse)
-			So(old, ShouldEqual, 0)
+			assert.False(t, loaded)
+			assert.Equal(t, 0, old)
 			v, _ := m.Load("key1")
-			So(v, ShouldEqual, 200)
+			assert.Equal(t, 200, v)
 		})
 	})
 }
 
 func TestSyncMapRange(t *testing.T) {
-	Convey("SyncMap Range 测试", t, func() {
-		Convey("Range 遍历所有元素", func() {
+	t.Run("SyncMap Range 测试", func(t *testing.T) {
+		t.Run("Range 遍历所有元素", func(t *testing.T) {
 			m := NewSyncMap[int, string]()
 			m.Store(1, "a")
 			m.Store(2, "b")
@@ -79,13 +79,13 @@ func TestSyncMapRange(t *testing.T) {
 				result[k] = v
 				return true
 			})
-			So(len(result), ShouldEqual, 3)
-			So(result[1], ShouldEqual, "a")
-			So(result[2], ShouldEqual, "b")
-			So(result[3], ShouldEqual, "c")
+			assert.Equal(t, 3, len(result))
+			assert.Equal(t, "a", result[1])
+			assert.Equal(t, "b", result[2])
+			assert.Equal(t, "c", result[3])
 		})
 
-		Convey("Range 提前终止", func() {
+		t.Run("Range 提前终止", func(t *testing.T) {
 			m := NewSyncMap[int, int]()
 			for i := 0; i < 10; i++ {
 				m.Store(i, i*10)
@@ -96,168 +96,168 @@ func TestSyncMapRange(t *testing.T) {
 				count++
 				return count < 5
 			})
-			So(count, ShouldEqual, 5)
+			assert.Equal(t, 5, count)
 		})
 	})
 }
 
 func TestSyncMapLoadOrStore(t *testing.T) {
-	Convey("SyncMap LoadOrStore 测试", t, func() {
-		Convey("LoadOrStore 不存在的key", func() {
+	t.Run("SyncMap LoadOrStore 测试", func(t *testing.T) {
+		t.Run("LoadOrStore 不存在的key", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			v, loaded := m.LoadOrStore("key1", 100)
-			So(loaded, ShouldBeFalse)
-			So(v, ShouldEqual, 100)
+			assert.False(t, loaded)
+			assert.Equal(t, 100, v)
 		})
 
-		Convey("LoadOrStore 已存在的key", func() {
+		t.Run("LoadOrStore 已存在的key", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
 			v, loaded := m.LoadOrStore("key1", 200)
-			So(loaded, ShouldBeTrue)
-			So(v, ShouldEqual, 100)
+			assert.True(t, loaded)
+			assert.Equal(t, 100, v)
 		})
 	})
 }
 
 func TestSyncMapLoadAndDelete(t *testing.T) {
-	Convey("SyncMap LoadAndDelete 测试", t, func() {
-		Convey("LoadAndDelete 已存在的key", func() {
+	t.Run("SyncMap LoadAndDelete 测试", func(t *testing.T) {
+		t.Run("LoadAndDelete 已存在的key", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
 			v, loaded := m.LoadAndDelete("key1")
-			So(loaded, ShouldBeTrue)
-			So(v, ShouldEqual, 100)
+			assert.True(t, loaded)
+			assert.Equal(t, 100, v)
 			_, ok := m.Load("key1")
-			So(ok, ShouldBeFalse)
+			assert.False(t, ok)
 		})
 
-		Convey("LoadAndDelete 不存在的key", func() {
+		t.Run("LoadAndDelete 不存在的key", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			v, loaded := m.LoadAndDelete("key1")
-			So(loaded, ShouldBeFalse)
-			So(v, ShouldEqual, 0)
+			assert.False(t, loaded)
+			assert.Equal(t, 0, v)
 		})
 	})
 }
 
 func TestSyncMapCompareAndSwap(t *testing.T) {
-	Convey("SyncMap CompareAndSwap 测试", t, func() {
-		Convey("CompareAndSwap 值匹配", func() {
+	t.Run("SyncMap CompareAndSwap 测试", func(t *testing.T) {
+		t.Run("CompareAndSwap 值匹配", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.CompareAndSwap("key1", 100, 200), ShouldBeTrue)
+			assert.True(t, m.CompareAndSwap("key1", 100, 200))
 			v, _ := m.Load("key1")
-			So(v, ShouldEqual, 200)
+			assert.Equal(t, 200, v)
 		})
 
-		Convey("CompareAndSwap 值不匹配", func() {
+		t.Run("CompareAndSwap 值不匹配", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.CompareAndSwap("key1", 999, 200), ShouldBeFalse)
+			assert.False(t, m.CompareAndSwap("key1", 999, 200))
 			v, _ := m.Load("key1")
-			So(v, ShouldEqual, 100)
+			assert.Equal(t, 100, v)
 		})
 	})
 }
 
 func TestSyncMapCompareAndDelete(t *testing.T) {
-	Convey("SyncMap CompareAndDelete 测试", t, func() {
-		Convey("CompareAndDelete 值匹配", func() {
+	t.Run("SyncMap CompareAndDelete 测试", func(t *testing.T) {
+		t.Run("CompareAndDelete 值匹配", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.CompareAndDelete("key1", 100), ShouldBeTrue)
+			assert.True(t, m.CompareAndDelete("key1", 100))
 			_, ok := m.Load("key1")
-			So(ok, ShouldBeFalse)
+			assert.False(t, ok)
 		})
 	})
 }
 
 func TestSyncMapCompareFnAndSwap(t *testing.T) {
-	Convey("SyncMap CompareFnAndSwap 测试", t, func() {
-		Convey("自定义比较函数匹配", func() {
+	t.Run("SyncMap CompareFnAndSwap 测试", func(t *testing.T) {
+		t.Run("自定义比较函数匹配", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.CompareFnAndSwap("key1", func(a, b int) bool { return a == b }, 100, 200), ShouldBeTrue)
+			assert.True(t, m.CompareFnAndSwap("key1", func(a, b int) bool { return a == b }, 100, 200))
 			v, _ := m.Load("key1")
-			So(v, ShouldEqual, 200)
+			assert.Equal(t, 200, v)
 		})
 
-		Convey("自定义比较函数不匹配", func() {
+		t.Run("自定义比较函数不匹配", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.CompareFnAndSwap("key1", func(a, b int) bool { return a > b }, 100, 200), ShouldBeFalse)
+			assert.False(t, m.CompareFnAndSwap("key1", func(a, b int) bool { return a > b }, 100, 200))
 			v, _ := m.Load("key1")
-			So(v, ShouldEqual, 100)
+			assert.Equal(t, 100, v)
 		})
 
-		Convey("key 不存在返回false", func() {
+		t.Run("key 不存在返回false", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
-			So(m.CompareFnAndSwap("key1", func(a, b int) bool { return true }, 100, 200), ShouldBeFalse)
+			assert.False(t, m.CompareFnAndSwap("key1", func(a, b int) bool { return true }, 100, 200))
 		})
 	})
 }
 
 func TestSyncMapCompareFnAndDelete(t *testing.T) {
-	Convey("SyncMap CompareFnAndDelete 测试", t, func() {
-		Convey("自定义比较函数匹配", func() {
+	t.Run("SyncMap CompareFnAndDelete 测试", func(t *testing.T) {
+		t.Run("自定义比较函数匹配", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
 			m.Store("key1", 100)
-			So(m.CompareFnAndDelete("key1", func(a, b int) bool { return a == b }, 100), ShouldBeTrue)
+			assert.True(t, m.CompareFnAndDelete("key1", func(a, b int) bool { return a == b }, 100))
 			_, ok := m.Load("key1")
-			So(ok, ShouldBeFalse)
+			assert.False(t, ok)
 		})
 
-		Convey("key 不存在返回false", func() {
+		t.Run("key 不存在返回false", func(t *testing.T) {
 			m := NewSyncMap[string, int]()
-			So(m.CompareFnAndDelete("key1", func(a, b int) bool { return true }, 100), ShouldBeFalse)
+			assert.False(t, m.CompareFnAndDelete("key1", func(a, b int) bool { return true }, 100))
 		})
 	})
 }
 
 func TestSyncMapKeys(t *testing.T) {
-	Convey("SyncMap Keys 测试", t, func() {
-		Convey("返回所有key", func() {
+	t.Run("SyncMap Keys 测试", func(t *testing.T) {
+		t.Run("返回所有key", func(t *testing.T) {
 			m := NewSyncMap[int, string]()
 			m.Store(1, "a")
 			m.Store(2, "b")
 
 			keys := m.Keys()
-			So(len(keys), ShouldEqual, 2)
-			So(keys, ShouldContain, 1)
-			So(keys, ShouldContain, 2)
+			assert.Equal(t, 2, len(keys))
+			assert.Contains(t, keys, 1)
+			assert.Contains(t, keys, 2)
 		})
 
-		Convey("空map返回空slice", func() {
+		t.Run("空map返回空slice", func(t *testing.T) {
 			m := NewSyncMap[int, string]()
-			So(m.Keys(), ShouldBeEmpty)
+			assert.Empty(t, m.Keys())
 		})
 	})
 }
 
 func TestSyncMapValues(t *testing.T) {
-	Convey("SyncMap Values 测试", t, func() {
-		Convey("返回所有value", func() {
+	t.Run("SyncMap Values 测试", func(t *testing.T) {
+		t.Run("返回所有value", func(t *testing.T) {
 			m := NewSyncMap[int, string]()
 			m.Store(1, "a")
 			m.Store(2, "b")
 
 			values := m.Values()
-			So(len(values), ShouldEqual, 2)
-			So(values, ShouldContain, "a")
-			So(values, ShouldContain, "b")
+			assert.Equal(t, 2, len(values))
+			assert.Contains(t, values, "a")
+			assert.Contains(t, values, "b")
 		})
 
-		Convey("空map返回空slice", func() {
+		t.Run("空map返回空slice", func(t *testing.T) {
 			m := NewSyncMap[int, string]()
-			So(m.Values(), ShouldBeEmpty)
+			assert.Empty(t, m.Values())
 		})
 	})
 }
 
 func TestSyncMapFilter(t *testing.T) {
-	Convey("SyncMap Filter 测试", t, func() {
-		Convey("Filter 过滤结果", func() {
+	t.Run("SyncMap Filter 测试", func(t *testing.T) {
+		t.Run("Filter 过滤结果", func(t *testing.T) {
 			m := NewSyncMap[int, int]()
 			m.Store(1, 10)
 			m.Store(2, 20)
@@ -268,20 +268,20 @@ func TestSyncMapFilter(t *testing.T) {
 			})
 
 			_, ok := filtered.Load(1)
-			So(ok, ShouldBeFalse)
+			assert.False(t, ok)
 			v2, ok := filtered.Load(2)
-			So(ok, ShouldBeTrue)
-			So(v2, ShouldEqual, 20)
+			assert.True(t, ok)
+			assert.Equal(t, 20, v2)
 			v3, ok := filtered.Load(3)
-			So(ok, ShouldBeTrue)
-			So(v3, ShouldEqual, 30)
+			assert.True(t, ok)
+			assert.Equal(t, 30, v3)
 		})
 	})
 }
 
 func TestSyncMapConcurrent(t *testing.T) {
-	Convey("SyncMap 并发测试", t, func() {
-		Convey("并发 Store 和 Load", func() {
+	t.Run("SyncMap 并发测试", func(t *testing.T) {
+		t.Run("并发 Store 和 Load", func(t *testing.T) {
 			m := NewSyncMap[int, int]()
 			var wg sync.WaitGroup
 			n := 100
@@ -298,19 +298,19 @@ func TestSyncMapConcurrent(t *testing.T) {
 
 			for i := 0; i < n; i++ {
 				v, ok := m.Load(i)
-				So(ok, ShouldBeTrue)
-				So(v, ShouldEqual, i*10)
+				assert.True(t, ok)
+				assert.Equal(t, i*10, v)
 			}
 		})
 	})
 }
 
 func TestSyncMapInterface(t *testing.T) {
-	Convey("SyncMap 实现 Map 接口", t, func() {
+	t.Run("SyncMap 实现 Map 接口", func(t *testing.T) {
 		var m Map[int, int] = NewSyncMap[int, int]()
 		m.Store(1, 10)
 		v, ok := m.Load(1)
-		So(ok, ShouldBeTrue)
-		So(v, ShouldEqual, 10)
+		assert.True(t, ok)
+		assert.Equal(t, 10, v)
 	})
 }

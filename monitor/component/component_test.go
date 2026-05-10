@@ -7,12 +7,12 @@ import (
 
 	"github.com/BYT0723/go-tools/monitor"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAlertComponentAddRule(t *testing.T) {
-	Convey("AlertComponent AddAlertRule 测试", t, func() {
-		Convey("添加规则后Evaluate", func() {
+	t.Run("AlertComponent AddAlertRule 测试", func(t *testing.T) {
+		t.Run("添加规则后Evaluate", func(t *testing.T) {
 			var ac AlertComponent[int]
 			ac.AddAlertRule(func(payload *int) (*monitor.Alert, bool) {
 				if *payload > 10 {
@@ -23,10 +23,10 @@ func TestAlertComponentAddRule(t *testing.T) {
 
 			val := 15
 			alerts := ac.Evaluate(&val)
-			So(alerts, ShouldBeEmpty) // 需要累积触发次数才报警
+			assert.Empty(t, alerts)
 		})
 
-		Convey("添加多条规则", func() {
+		t.Run("添加多条规则", func(t *testing.T) {
 			var ac AlertComponent[int]
 			ac.AddAlertRule(
 				func(payload *int) (*monitor.Alert, bool) {
@@ -45,14 +45,14 @@ func TestAlertComponentAddRule(t *testing.T) {
 
 			val := 15
 			alerts := ac.Evaluate(&val)
-			So(alerts, ShouldBeEmpty)
+			assert.Empty(t, alerts)
 		})
 	})
 }
 
 func TestAlertComponentEvaluate(t *testing.T) {
-	Convey("AlertComponent Evaluate 测试", t, func() {
-		Convey("不匹配时不产生告警", func() {
+	t.Run("AlertComponent Evaluate 测试", func(t *testing.T) {
+		t.Run("不匹配时不产生告警", func(t *testing.T) {
 			var ac AlertComponent[int]
 			ac.AddAlertRule(func(payload *int) (*monitor.Alert, bool) {
 				if *payload > 100 {
@@ -63,10 +63,10 @@ func TestAlertComponentEvaluate(t *testing.T) {
 
 			val := 50
 			alerts := ac.Evaluate(&val)
-			So(alerts, ShouldBeEmpty)
+			assert.Empty(t, alerts)
 		})
 
-		Convey("规则返回nil alert但matched为true时不产生告警", func() {
+		t.Run("规则返回nil alert但matched为true时不产生告警", func(t *testing.T) {
 			var ac AlertComponent[int]
 			ac.AddAlertRule(func(payload *int) (*monitor.Alert, bool) {
 				return nil, true
@@ -74,138 +74,136 @@ func TestAlertComponentEvaluate(t *testing.T) {
 
 			val := 1
 			alerts := ac.Evaluate(&val)
-			So(alerts, ShouldBeEmpty)
+			assert.Empty(t, alerts)
 		})
 	})
 }
 
 func TestMonitorComponentNew(t *testing.T) {
-	Convey("MonitorComponent 创建测试", t, func() {
-		Convey("NewMonitorComponent 创建实例", func() {
+	t.Run("MonitorComponent 创建测试", func(t *testing.T) {
+		t.Run("NewMonitorComponent 创建实例", func(t *testing.T) {
 			mc := NewMonitorComponent()
-			So(mc, ShouldNotBeNil)
-			So(mc.Timeout, ShouldEqual, time.Minute)
+			assert.NotNil(t, mc)
+			assert.Equal(t, time.Minute, mc.Timeout)
 		})
 	})
 }
 
 func TestMonitorComponentSetCycle(t *testing.T) {
-	Convey("MonitorComponent SetCycle 测试", t, func() {
-		Convey("设置为0不更新", func() {
+	t.Run("MonitorComponent SetCycle 测试", func(t *testing.T) {
+		t.Run("设置为0不更新", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.SetCycle(0)
-			So(mc.Timeout, ShouldEqual, time.Minute)
+			assert.Equal(t, time.Minute, mc.Timeout)
 		})
 
-		Convey("设置相同值不更新", func() {
+		t.Run("设置相同值不更新", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.SetCycle(time.Minute)
-			So(mc.Timeout, ShouldEqual, time.Minute)
+			assert.Equal(t, time.Minute, mc.Timeout)
 		})
 
-		Convey("设置新值更新cycle", func() {
+		t.Run("设置新值更新cycle", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.SetCycle(10 * time.Second)
-			So(mc.Timeout, ShouldEqual, 10*time.Second) // timeout调整为不超过cycle
+			assert.Equal(t, 10*time.Second, mc.Timeout)
 		})
 	})
 }
 
 func TestMonitorComponentSetTimeout(t *testing.T) {
-	Convey("MonitorComponent SetTimeout 测试", t, func() {
-		Convey("设置为0不更新", func() {
+	t.Run("MonitorComponent SetTimeout 测试", func(t *testing.T) {
+		t.Run("设置为0不更新", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.SetTimeout(0)
-			So(mc.Timeout, ShouldEqual, time.Minute)
+			assert.Equal(t, time.Minute, mc.Timeout)
 		})
 
-		Convey("设置相同值不更新", func() {
+		t.Run("设置相同值不更新", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.SetTimeout(time.Minute)
-			So(mc.Timeout, ShouldEqual, time.Minute)
+			assert.Equal(t, time.Minute, mc.Timeout)
 		})
 
-		Convey("设置新值更新timeout", func() {
+		t.Run("设置新值更新timeout", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.SetTimeout(30 * time.Second)
-			So(mc.Timeout, ShouldEqual, 30*time.Second)
+			assert.Equal(t, 30*time.Second, mc.Timeout)
 		})
 	})
 }
 
 func TestMonitorComponentSubscribe(t *testing.T) {
-	Convey("MonitorComponent Subscribe 测试", t, func() {
-		Convey("Subscribe 返回只读channel", func() {
+	t.Run("MonitorComponent Subscribe 测试", func(t *testing.T) {
+		t.Run("Subscribe 返回只读channel", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			ch := mc.Subscribe()
-			So(ch, ShouldNotBeNil)
+			assert.NotNil(t, ch)
 		})
 	})
 }
 
 func TestMonitorComponentNotify(t *testing.T) {
-	Convey("MonitorComponent Notify 测试", t, func() {
-		Convey("Notify 发送告警到channel", func() {
+	t.Run("MonitorComponent Notify 测试", func(t *testing.T) {
+		t.Run("Notify 发送告警到channel", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			alert := monitor.NewAlert(monitor.SeverityInfo, monitor.SourceInternal, "test", nil)
 			mc.Notify(alert)
 
 			select {
 			case a := <-mc.Subscribe():
-				So(a, ShouldEqual, alert)
+				assert.Equal(t, alert, a)
 			default:
-				// may not receive due to buffer/timeout
 			}
 		})
 	})
 }
 
 func TestMonitorComponentStop(t *testing.T) {
-	Convey("MonitorComponent Stop 测试", t, func() {
-		Convey("Stop 关闭channel", func() {
+	t.Run("MonitorComponent Stop 测试", func(t *testing.T) {
+		t.Run("Stop 关闭channel", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			mc.Stop(context.Background())
-			// channel should be closed
 			select {
 			case _, ok := <-mc.Subscribe():
-				So(ok, ShouldBeFalse)
+				assert.False(t, ok)
 			}
 		})
 	})
 }
 
 func TestMonitorComponentContext(t *testing.T) {
-	Convey("MonitorComponent Context 测试", t, func() {
-		Convey("空context时自动初始化", func() {
+	t.Run("MonitorComponent Context 测试", func(t *testing.T) {
+		t.Run("空context时自动初始化", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			ctx := mc.Context()
-			So(ctx, ShouldNotBeNil)
+			assert.NotNil(t, ctx)
 		})
 
-		Convey("SetContext 设置context", func() {
+		t.Run("SetContext 设置context", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			parentCtx := context.Background()
 			mc.SetContext(parentCtx)
 			ctx := mc.Context()
-			So(ctx, ShouldNotBeNil)
+			assert.NotNil(t, ctx)
 		})
 	})
 }
 
 func TestMonitorComponentTicker(t *testing.T) {
-	Convey("MonitorComponent Ticker 测试", t, func() {
-		Convey("Ticker 自动初始化", func() {
+	t.Run("MonitorComponent Ticker 测试", func(t *testing.T) {
+		t.Run("Ticker 自动初始化", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			ticker := mc.Ticker()
-			So(ticker, ShouldNotBeNil)
+			assert.NotNil(t, ticker)
 			ticker.Stop()
 		})
 
-		Convey("多次调用返回相同ticker", func() {
+		t.Run("多次调用返回相同ticker", func(t *testing.T) {
 			mc := NewMonitorComponent()
 			t1 := mc.Ticker()
 			t2 := mc.Ticker()
-			So(t1, ShouldEqual, t2)
+			assert.Equal(t, t2, t1)
 			t1.Stop()
 		})
 	})

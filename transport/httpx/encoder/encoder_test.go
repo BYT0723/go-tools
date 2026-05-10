@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 type mockCompressor struct {
@@ -20,22 +20,22 @@ func (m *mockCompressor) Compress(writer io.Writer, src []byte) error {
 }
 
 func TestJSONEncoder(t *testing.T) {
-	Convey("JSONEncoder 测试", t, func() {
-		Convey("Encode 正常数据", func() {
+	t.Run("JSONEncoder 测试", func(t *testing.T) {
+		t.Run("Encode 正常数据", func(t *testing.T) {
 			e := JSONEncoder()
 			payload := map[string]string{"key": "value"}
 			reader, err := e.Encode(payload)
-			So(err, ShouldBeNil)
-			So(reader, ShouldNotBeNil)
+			assert.Nil(t, err)
+			assert.NotNil(t, reader)
 		})
 
-		Convey("RequestHeader 返回正确的Content-Type", func() {
+		t.Run("RequestHeader 返回正确的Content-Type", func(t *testing.T) {
 			e := JSONEncoder()
 			h := e.RequestHeader()
-			So(h.Get("Content-Type"), ShouldEqual, "application/json")
+			assert.Equal(t, "application/json", h.Get("Content-Type"))
 		})
 
-		Convey("JSONEncoderWithCompressor 压缩数据", func() {
+		t.Run("JSONEncoderWithCompressor 压缩数据", func(t *testing.T) {
 			var buf bytes.Buffer
 			mc := &mockCompressor{
 				header: http.Header{"Content-Encoding": []string{"gzip"}},
@@ -43,17 +43,17 @@ func TestJSONEncoder(t *testing.T) {
 			e := JSONEncoderWithCompressor(mc)
 			payload := map[string]string{"key": "value"}
 			reader, err := e.Encode(payload)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 			_ = buf
 			_, err = io.ReadAll(reader)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 	})
 }
 
 func TestGobEncoder(t *testing.T) {
-	Convey("GobEncoder 测试", t, func() {
-		Convey("Encode struct数据", func() {
+	t.Run("GobEncoder 测试", func(t *testing.T) {
+		t.Run("Encode struct数据", func(t *testing.T) {
 			e := GobEncoder()
 			type testStruct struct {
 				Name string
@@ -61,21 +61,21 @@ func TestGobEncoder(t *testing.T) {
 			}
 			payload := testStruct{Name: "test", Age: 30}
 			reader, err := e.Encode(payload)
-			So(err, ShouldBeNil)
-			So(reader, ShouldNotBeNil)
+			assert.Nil(t, err)
+			assert.NotNil(t, reader)
 		})
 
-		Convey("RequestHeader 返回正确的Content-Type", func() {
+		t.Run("RequestHeader 返回正确的Content-Type", func(t *testing.T) {
 			e := GobEncoder()
 			h := e.RequestHeader()
-			So(h.Get("Content-Type"), ShouldEqual, "application/gob")
+			assert.Equal(t, "application/gob", h.Get("Content-Type"))
 		})
 	})
 }
 
 func TestCompressorInterface(t *testing.T) {
-	Convey("Compressor 接口定义验证", t, func() {
+	t.Run("Compressor 接口定义验证", func(t *testing.T) {
 		var c Compressor = &mockCompressor{}
-		So(c, ShouldNotBeNil)
+		assert.NotNil(t, c)
 	})
 }

@@ -4,66 +4,66 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewClient(t *testing.T) {
-	Convey("NewClient 测试", t, func() {
-		Convey("创建默认client", func() {
+	t.Run("NewClient 测试", func(t *testing.T) {
+		t.Run("创建默认client", func(t *testing.T) {
 			c := NewClient()
-			So(c, ShouldNotBeNil)
-			So(c.encoder, ShouldNotBeNil)
-			So(c.decoder, ShouldNotBeNil)
-			So(c.cli, ShouldNotBeNil)
+			assert.NotNil(t, c)
+			assert.NotNil(t, c.encoder)
+			assert.NotNil(t, c.decoder)
+			assert.NotNil(t, c.cli)
 		})
 
-		Convey("创建client并设置option", func() {
+		t.Run("创建client并设置option", func(t *testing.T) {
 			httpCli := &http.Client{}
 			c := NewClient(WithHttpClient(httpCli))
-			So(c, ShouldNotBeNil)
-			So(c.cli, ShouldEqual, httpCli)
+			assert.NotNil(t, c)
+			assert.Equal(t, httpCli, c.cli)
 		})
 	})
 }
 
 func TestDefaultClient(t *testing.T) {
-	Convey("DefaultClient 测试", t, func() {
-		So(DefaultClient, ShouldNotBeNil)
+	t.Run("DefaultClient 测试", func(t *testing.T) {
+		assert.NotNil(t, DefaultClient)
 	})
 }
 
 func TestRequestStruct(t *testing.T) {
-	Convey("request 结构测试", t, func() {
+	t.Run("request 结构测试", func(t *testing.T) {
 		r := &request{}
-		So(r.header, ShouldBeNil)
-		So(r.payload, ShouldBeNil)
+		assert.Nil(t, r.header)
+		assert.Nil(t, r.payload)
 	})
 }
 
 func TestResponseStruct(t *testing.T) {
-	Convey("Response 结构测试", t, func() {
+	t.Run("Response 结构测试", func(t *testing.T) {
 		resp := &Response{
 			Code:   200,
 			Header: http.Header{"Content-Type": {"application/json"}},
 			Body:   []byte(`{"key":"value"}`),
 		}
-		So(resp.Code, ShouldEqual, 200)
-		So(resp.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		So(string(resp.Body), ShouldEqual, `{"key":"value"}`)
+		assert.Equal(t, 200, resp.Code)
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+		assert.Equal(t, `{"key":"value"}`, string(resp.Body))
 	})
 }
 
 func TestWithHeader(t *testing.T) {
-	Convey("WithHeader 测试", t, func() {
-		Convey("设置header", func() {
+	t.Run("WithHeader 测试", func(t *testing.T) {
+		t.Run("设置header", func(t *testing.T) {
 			h := http.Header{"Authorization": {"Bearer token"}}
 			p := WithHeader(h)
 			r := &request{}
 			p(r)
-			So(r.header.Get("Authorization"), ShouldEqual, "Bearer token")
+			assert.Equal(t, "Bearer token", r.header.Get("Authorization"))
 		})
 
-		Convey("设置多个header", func() {
+		t.Run("设置多个header", func(t *testing.T) {
 			h := http.Header{
 				"Content-Type": {"application/json"},
 				"Accept":       {"application/json"},
@@ -71,59 +71,57 @@ func TestWithHeader(t *testing.T) {
 			p := WithHeader(h)
 			r := &request{}
 			p(r)
-			So(r.header.Get("Content-Type"), ShouldEqual, "application/json")
-			So(r.header.Get("Accept"), ShouldEqual, "application/json")
+			assert.Equal(t, "application/json", r.header.Get("Content-Type"))
+			assert.Equal(t, "application/json", r.header.Get("Accept"))
 		})
 	})
 }
 
 func TestWithPayload(t *testing.T) {
-	Convey("WithPayload 测试", t, func() {
-		Convey("设置map payload", func() {
+	t.Run("WithPayload 测试", func(t *testing.T) {
+		t.Run("设置map payload", func(t *testing.T) {
 			payload := map[string]any{"key": "value"}
 			p := WithPayload(payload)
 			r := &request{}
 			p(r)
-			So(r.payload, ShouldEqual, payload)
+			assert.Equal(t, payload, r.payload)
 		})
 
-		Convey("设置string payload", func() {
+		t.Run("设置string payload", func(t *testing.T) {
 			p := WithPayload("hello")
 			r := &request{}
 			p(r)
-			So(r.payload, ShouldEqual, "hello")
+			assert.Equal(t, "hello", r.payload)
 		})
 
-		Convey("设置nil payload", func() {
+		t.Run("设置nil payload", func(t *testing.T) {
 			p := WithPayload(nil)
 			r := &request{}
 			p(r)
-			So(r.payload, ShouldBeNil)
+			assert.Nil(t, r.payload)
 		})
 	})
 }
 
 func TestEncoderInterface(t *testing.T) {
-	Convey("Encoder 接口定义验证", t, func() {
-		// Encoder interface: RequestHeader() http.Header, Encode(any) (io.Reader, error)
-		So(true, ShouldBeTrue)
+	t.Run("Encoder 接口定义验证", func(t *testing.T) {
+		assert.True(t, true)
 	})
 }
 
 func TestDecoderInterface(t *testing.T) {
-	Convey("Decoder 接口定义验证", t, func() {
-		// Decoder interface: Decode(io.Reader, http.Header, any) error
-		So(true, ShouldBeTrue)
+	t.Run("Decoder 接口定义验证", func(t *testing.T) {
+		assert.True(t, true)
 	})
 }
 
 func TestOptionFunctions(t *testing.T) {
-	Convey("Option 函数测试", t, func() {
-		Convey("WithHttpClient", func() {
+	t.Run("Option 函数测试", func(t *testing.T) {
+		t.Run("WithHttpClient", func(t *testing.T) {
 			httpCli := &http.Client{}
 			c := NewClient()
 			WithHttpClient(httpCli)(c)
-			So(c.cli, ShouldEqual, httpCli)
+			assert.Equal(t, httpCli, c.cli)
 		})
 	})
 }

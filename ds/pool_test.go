@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 type testResource struct {
@@ -20,69 +20,98 @@ func (t *testResource) Close() error {
 }
 
 func TestPoolGet(t *testing.T) {
-	Convey("Pool Get 测试", t, func() {
-		var createCount atomic.Int32
+	t.Run("Pool Get 测试", func(t *testing.T) {
+		t.Run("Get 不存在的key会创建新资源", func(t *testing.T) {
+			var createCount atomic.Int32
 
-		p := &Pool[int, *testResource]{
-			New: func(ctx context.Context, key int) (*testResource, error) {
-				createCount.Add(1)
-				return &testResource{id: key}, nil
-			},
-			Identifier: func(key int) string {
-				return string(rune(key))
-			},
-			Destroy: func(ctx context.Context, value *testResource) error {
-				return nil
-			},
-		}
+			p := &Pool[int, *testResource]{
+				New: func(ctx context.Context, key int) (*testResource, error) {
+					createCount.Add(1)
+					return &testResource{id: key}, nil
+				},
+				Identifier: func(key int) string {
+					return string(rune(key))
+				},
+				Destroy: func(ctx context.Context, value *testResource) error {
+					return nil
+				},
+			}
 
-		Convey("Get 不存在的key会创建新资源", func() {
 			v, err := p.GetWithCtx(context.Background(), 1)
-			So(err, ShouldBeNil)
-			So(v, ShouldNotBeNil)
-			So(v.id, ShouldEqual, 1)
-			So(createCount.Load(), ShouldEqual, 1)
+			assert.Nil(t, err)
+			assert.NotNil(t, v)
+			assert.Equal(t, 1, v.id)
+			assert.Equal(t, int32(1), createCount.Load())
 		})
 
-		Convey("Get 已存在的key复用资源", func() {
+		t.Run("Get 已存在的key复用资源", func(t *testing.T) {
+			var createCount atomic.Int32
+
+			p := &Pool[int, *testResource]{
+				New: func(ctx context.Context, key int) (*testResource, error) {
+					createCount.Add(1)
+					return &testResource{id: key}, nil
+				},
+				Identifier: func(key int) string {
+					return string(rune(key))
+				},
+				Destroy: func(ctx context.Context, value *testResource) error {
+					return nil
+				},
+			}
+
 			v1, _ := p.GetWithCtx(context.Background(), 2)
 			v2, _ := p.GetWithCtx(context.Background(), 2)
-			So(v1, ShouldEqual, v2)
-			So(createCount.Load(), ShouldEqual, 1)
+			assert.Equal(t, v1, v2)
+			assert.Equal(t, int32(1), createCount.Load())
 		})
 	})
 }
 
 func TestPoolPut(t *testing.T) {
-	Convey("Pool Put 测试", t, func() {
-		var destroyed atomic.Bool
+	t.Run("Pool Put 测试", func(t *testing.T) {
+		t.Run("Put 不存在key的borrow count为1时调用Destroy", func(t *testing.T) {
+			var destroyed atomic.Bool
 
-		p := &Pool[int, *testResource]{
-			New: func(ctx context.Context, key int) (*testResource, error) {
-				return &testResource{id: key}, nil
-			},
-			Identifier: func(key int) string {
-				return string(rune(key))
-			},
-			Destroy: func(ctx context.Context, value *testResource) error {
-				destroyed.Store(true)
-				return nil
-			},
-		}
+			p := &Pool[int, *testResource]{
+				New: func(ctx context.Context, key int) (*testResource, error) {
+					return &testResource{id: key}, nil
+				},
+				Identifier: func(key int) string {
+					return string(rune(key))
+				},
+				Destroy: func(ctx context.Context, value *testResource) error {
+					destroyed.Store(true)
+					return nil
+				},
+			}
 
-		Convey("Put 不存在key的borrow count为1时调用Destroy", func() {
 			v, _ := p.GetWithCtx(context.Background(), 1)
-			So(v, ShouldNotBeNil)
+			assert.NotNil(t, v)
 
 			err := p.PutWithCtx(context.Background(), 1)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("Put 多次Get后borrow count大于1不触发Destroy", func() {
-			destroyed.Store(false)
+		t.Run("Put 多次Get后borrow count大于1不触发Destroy", func(t *testing.T) {
+			var destroyed atomic.Bool
+
+			p := &Pool[int, *testResource]{
+				New: func(ctx context.Context, key int) (*testResource, error) {
+					return &testResource{id: key}, nil
+				},
+				Identifier: func(key int) string {
+					return string(rune(key))
+				},
+				Destroy: func(ctx context.Context, value *testResource) error {
+					destroyed.Store(true)
+					return nil
+				},
+			}
+
 			v1, _ := p.GetWithCtx(context.Background(), 2)
 			v2, _ := p.GetWithCtx(context.Background(), 2)
-			So(v1, ShouldEqual, v2)
+			assert.Equal(t, v1, v2)
 
 			_ = p.PutWithCtx(context.Background(), 2)
 		})
@@ -90,7 +119,7 @@ func TestPoolPut(t *testing.T) {
 }
 
 func TestPoolGetDefaultCtx(t *testing.T) {
-	Convey("Pool Get 使用默认context", t, func() {
+	t.Run("Pool Get 使用默认context", func(t *testing.T) {
 		p := &Pool[int, *testResource]{
 			New: func(ctx context.Context, key int) (*testResource, error) {
 				return &testResource{id: key}, nil
@@ -104,13 +133,13 @@ func TestPoolGetDefaultCtx(t *testing.T) {
 		}
 
 		v, err := p.Get(context.Background(), 1)
-		So(err, ShouldBeNil)
-		So(v, ShouldNotBeNil)
+		assert.Nil(t, err)
+		assert.NotNil(t, v)
 	})
 }
 
 func TestPoolPutDefaultCtx(t *testing.T) {
-	Convey("Pool Put 使用默认context", t, func() {
+	t.Run("Pool Put 使用默认context", func(t *testing.T) {
 		p := &Pool[int, *testResource]{
 			New: func(ctx context.Context, key int) (*testResource, error) {
 				return &testResource{id: key}, nil
@@ -124,14 +153,14 @@ func TestPoolPutDefaultCtx(t *testing.T) {
 		}
 
 		v, _ := p.GetWithCtx(context.Background(), 1)
-		So(v, ShouldNotBeNil)
+		assert.NotNil(t, v)
 		err := p.Put(1)
-		So(err, ShouldBeNil)
+		assert.Nil(t, err)
 	})
 }
 
 func TestPoolConcurrent(t *testing.T) {
-	Convey("Pool 并发测试", t, func() {
+	t.Run("Pool 并发测试", func(t *testing.T) {
 		p := &Pool[int, *testResource]{
 			New: func(ctx context.Context, key int) (*testResource, error) {
 				return &testResource{id: key}, nil
@@ -168,7 +197,7 @@ func TestPoolConcurrent(t *testing.T) {
 		close(errCh)
 
 		for e := range errCh {
-			So(e, ShouldBeNil)
+			assert.Nil(t, e)
 		}
 	})
 }

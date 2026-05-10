@@ -3,28 +3,28 @@ package logcore
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDefaultLoggerConf(t *testing.T) {
-	Convey("DefaultLoggerConf 测试", t, func() {
+	t.Run("DefaultLoggerConf 测试", func(t *testing.T) {
 		cfg := DefaultLoggerConf()
-		So(cfg, ShouldNotBeNil)
-		So(cfg.Dir, ShouldEqual, "logs")
-		So(cfg.Name, ShouldEqual, "app")
-		So(cfg.Ext, ShouldEqual, ".log")
-		So(cfg.Level, ShouldEqual, "debug")
-		So(cfg.Multi, ShouldBeFalse)
-		So(cfg.MaxBackups, ShouldEqual, 20)
-		So(cfg.MaxSize, ShouldEqual, 20)
-		So(cfg.MaxAge, ShouldEqual, 7)
-		So(cfg.Console, ShouldBeTrue)
+		assert.NotNil(t, cfg)
+		assert.Equal(t, "logs", cfg.Dir)
+		assert.Equal(t, "app", cfg.Name)
+		assert.Equal(t, ".log", cfg.Ext)
+		assert.Equal(t, "debug", cfg.Level)
+		assert.False(t, cfg.Multi)
+		assert.Equal(t, 20, cfg.MaxBackups)
+		assert.Equal(t, 20, cfg.MaxSize)
+		assert.Equal(t, 7, cfg.MaxAge)
+		assert.True(t, cfg.Console)
 	})
 }
 
 func TestLoggerConfMerge(t *testing.T) {
-	Convey("LoggerConf Merge 测试", t, func() {
-		Convey("Merge 覆盖非零值字段", func() {
+	t.Run("LoggerConf Merge 测试", func(t *testing.T) {
+		t.Run("Merge 覆盖非零值字段", func(t *testing.T) {
 			base := DefaultLoggerConf()
 			other := &LoggerConf{
 				Dir:        "custom_logs",
@@ -35,39 +35,39 @@ func TestLoggerConfMerge(t *testing.T) {
 				Console:    false,
 			}
 			base.Merge(other)
-			So(base.Dir, ShouldEqual, "custom_logs")
-			So(base.Name, ShouldEqual, "custom_app")
-			So(base.Level, ShouldEqual, "info")
-			So(base.MaxBackups, ShouldEqual, 10)
-			So(base.MaxSize, ShouldEqual, 50)
-			So(base.Console, ShouldBeFalse)
+			assert.Equal(t, "custom_logs", base.Dir)
+			assert.Equal(t, "custom_app", base.Name)
+			assert.Equal(t, "info", base.Level)
+			assert.Equal(t, 10, base.MaxBackups)
+			assert.Equal(t, 50, base.MaxSize)
+			assert.False(t, base.Console)
 		})
 
-		Convey("Merge 空字段不覆盖", func() {
+		t.Run("Merge 空字段不覆盖", func(t *testing.T) {
 			base := DefaultLoggerConf()
 			other := &LoggerConf{}
 			base.Merge(other)
-			So(base.Dir, ShouldEqual, "logs")
-			So(base.Name, ShouldEqual, "app")
-			So(base.Level, ShouldEqual, "debug")
+			assert.Equal(t, "logs", base.Dir)
+			assert.Equal(t, "app", base.Name)
+			assert.Equal(t, "debug", base.Level)
 		})
 
-		Convey("Merge Multi 和 Console 直接赋值", func() {
+		t.Run("Merge Multi 和 Console 直接赋值", func(t *testing.T) {
 			base := DefaultLoggerConf()
 			base.Multi = false
 			base.Console = true
 			other := &LoggerConf{Multi: true, Console: false}
 			base.Merge(other)
-			So(base.Multi, ShouldBeTrue)
-			So(base.Console, ShouldBeFalse)
+			assert.True(t, base.Multi)
+			assert.False(t, base.Console)
 		})
 	})
 }
 
 func TestField(t *testing.T) {
-	Convey("Field 结构测试", t, func() {
+	t.Run("Field 结构测试", func(t *testing.T) {
 		f := Field{Key: "test", Value: 42}
-		So(f.Key, ShouldEqual, "test")
-		So(f.Value, ShouldEqual, 42)
+		assert.Equal(t, "test", f.Key)
+		assert.Equal(t, 42, f.Value)
 	})
 }

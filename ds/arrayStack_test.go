@@ -3,141 +3,141 @@ package ds
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestArrayStackPush(t *testing.T) {
-	Convey("ArrayStack Push 测试", t, func() {
-		Convey("Push 空栈", func() {
+	t.Run("ArrayStack Push 测试", func(t *testing.T) {
+		t.Run("Push 空栈", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
-			So(s.Size(), ShouldEqual, 1)
-			So(s.Empty(), ShouldBeFalse)
+			assert.Equal(t, 1, s.Size())
+			assert.False(t, s.Empty())
 		})
 
-		Convey("Push 多个元素", func() {
+		t.Run("Push 多个元素", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			for i := 0; i < 10; i++ {
 				s.Push(i)
 			}
-			So(s.Size(), ShouldEqual, 10)
+			assert.Equal(t, 10, s.Size())
 		})
 	})
 }
 
 func TestArrayStackPop(t *testing.T) {
-	Convey("ArrayStack Pop 测试", t, func() {
-		Convey("空栈 Pop panic", func() {
+	t.Run("ArrayStack Pop 测试", func(t *testing.T) {
+		t.Run("空栈 Pop panic", func(t *testing.T) {
 			s := NewArrayStack[int]()
-			So(func() { s.Pop() }, ShouldPanic)
+			assert.Panics(t, func() { s.Pop() })
 		})
 
-		Convey("Pop 返回最后Push的元素", func() {
+		t.Run("Pop 返回最后Push的元素", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
 			s.Push(2)
 			s.Push(3)
 			v, ok := s.Pop()
-			So(ok, ShouldBeTrue)
-			So(v, ShouldEqual, 3)
-			So(s.Size(), ShouldEqual, 2)
+			assert.True(t, ok)
+			assert.Equal(t, 3, v)
+			assert.Equal(t, 2, s.Size())
 		})
 
-		Convey("Pop 直到栈空", func() {
+		t.Run("Pop 直到栈空", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
 			s.Push(2)
 			s.Pop()
 			s.Pop()
-			So(s.Empty(), ShouldBeTrue)
-			So(s.Size(), ShouldEqual, 0)
+			assert.True(t, s.Empty())
+			assert.Equal(t, 0, s.Size())
 		})
 	})
 }
 
 func TestArrayStackPeek(t *testing.T) {
-	Convey("ArrayStack Peek 测试", t, func() {
-		Convey("空栈 Peek 返回零值和false", func() {
+	t.Run("ArrayStack Peek 测试", func(t *testing.T) {
+		t.Run("空栈 Peek 返回零值和false", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			v, ok := s.Peek()
-			So(ok, ShouldBeFalse)
-			So(v, ShouldEqual, 0)
+			assert.False(t, ok)
+			assert.Equal(t, 0, v)
 		})
 
-		Convey("Peek 返回栈顶元素但不移除", func() {
+		t.Run("Peek 返回栈顶元素但不移除", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
 			s.Push(2)
 			v, ok := s.Peek()
-			So(ok, ShouldBeTrue)
-			So(v, ShouldEqual, 2)
-			So(s.Size(), ShouldEqual, 2)
+			assert.True(t, ok)
+			assert.Equal(t, 2, v)
+			assert.Equal(t, 2, s.Size())
 		})
 	})
 }
 
 func TestArrayStackEmpty(t *testing.T) {
-	Convey("ArrayStack Empty 测试", t, func() {
-		Convey("新栈为空", func() {
+	t.Run("ArrayStack Empty 测试", func(t *testing.T) {
+		t.Run("新栈为空", func(t *testing.T) {
 			s := NewArrayStack[int]()
-			So(s.Empty(), ShouldBeTrue)
+			assert.True(t, s.Empty())
 		})
 
-		Convey("Push后不为空", func() {
+		t.Run("Push后不为空", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
-			So(s.Empty(), ShouldBeFalse)
+			assert.False(t, s.Empty())
 		})
 	})
 }
 
 func TestArrayStackSize(t *testing.T) {
-	Convey("ArrayStack Size 测试", t, func() {
-		Convey("新栈大小为0", func() {
+	t.Run("ArrayStack Size 测试", func(t *testing.T) {
+		t.Run("新栈大小为0", func(t *testing.T) {
 			s := NewArrayStack[int]()
-			So(s.Size(), ShouldEqual, 0)
+			assert.Equal(t, 0, s.Size())
 		})
 
-		Convey("Push/Pop 后大小正确", func() {
+		t.Run("Push/Pop 后大小正确", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
 			s.Push(2)
-			So(s.Size(), ShouldEqual, 2)
+			assert.Equal(t, 2, s.Size())
 			s.Pop()
-			So(s.Size(), ShouldEqual, 1)
+			assert.Equal(t, 1, s.Size())
 		})
 	})
 }
 
 func TestArrayStackString(t *testing.T) {
-	Convey("ArrayStack String 测试", t, func() {
-		Convey("空栈输出", func() {
+	t.Run("ArrayStack String 测试", func(t *testing.T) {
+		t.Run("空栈输出", func(t *testing.T) {
 			s := NewArrayStack[int]()
-			So(s.String(), ShouldEqual, "ArrayStack[]")
+			assert.Equal(t, "ArrayStack[]", s.String())
 		})
 
-		Convey("单元素输出", func() {
+		t.Run("单元素输出", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
-			So(s.String(), ShouldEqual, "ArrayStack[1]")
+			assert.Equal(t, "ArrayStack[1]", s.String())
 		})
 
-		Convey("多元素输出（从顶到底）", func() {
+		t.Run("多元素输出（从顶到底）", func(t *testing.T) {
 			s := NewArrayStack[int]()
 			s.Push(1)
 			s.Push(2)
 			s.Push(3)
-			So(s.String(), ShouldEqual, "ArrayStack[3 2 1]")
+			assert.Equal(t, "ArrayStack[3 2 1]", s.String())
 		})
 	})
 }
 
 func TestArrayStackInterface(t *testing.T) {
-	Convey("ArrayStack 实现 Stack 接口", t, func() {
+	t.Run("ArrayStack 实现 Stack 接口", func(t *testing.T) {
 		var s Stack[int] = NewArrayStack[int]()
 		s.Push(1)
 		v, ok := s.Pop()
-		So(ok, ShouldBeTrue)
-		So(v, ShouldEqual, 1)
+		assert.True(t, ok)
+		assert.Equal(t, 1, v)
 	})
 }

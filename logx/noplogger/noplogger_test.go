@@ -5,45 +5,45 @@ import (
 
 	"github.com/BYT0723/go-tools/logx/logcore"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNopLogger(t *testing.T) {
-	Convey("NopLogger 测试", t, func() {
+	t.Run("NopLogger 测试", func(t *testing.T) {
 		l := NopLogger{}
 
-		Convey("所有方法不panic", func() {
-			So(func() { l.Debug("test") }, ShouldNotPanic)
-			So(func() { l.Debugf("test %s", "arg") }, ShouldNotPanic)
-			So(func() { l.Info("test") }, ShouldNotPanic)
-			So(func() { l.Infof("test %s", "arg") }, ShouldNotPanic)
-			So(func() { l.Warn("test") }, ShouldNotPanic)
-			So(func() { l.Warnf("test %s", "arg") }, ShouldNotPanic)
-			So(func() { l.Error("test") }, ShouldNotPanic)
-			So(func() { l.Errorf("test %s", "arg") }, ShouldNotPanic)
-			So(func() { l.Log("info", "test") }, ShouldNotPanic)
-			So(func() { l.Logf("info", "test %s", "arg") }, ShouldNotPanic)
+		t.Run("所有方法不panic", func(t *testing.T) {
+			assert.NotPanics(t, func() { l.Debug("test") })
+			assert.NotPanics(t, func() { l.Debugf("test %s", "arg") })
+			assert.NotPanics(t, func() { l.Info("test") })
+			assert.NotPanics(t, func() { l.Infof("test %s", "arg") })
+			assert.NotPanics(t, func() { l.Warn("test") })
+			assert.NotPanics(t, func() { l.Warnf("test %s", "arg") })
+			assert.NotPanics(t, func() { l.Error("test") })
+			assert.NotPanics(t, func() { l.Errorf("test %s", "arg") })
+			assert.NotPanics(t, func() { l.Log("info", "test") })
+			assert.NotPanics(t, func() { l.Logf("info", "test %s", "arg") })
 		})
 
-		Convey("Sync 返回nil", func() {
-			So(l.Sync(), ShouldBeNil)
+		t.Run("Sync 返回nil", func(t *testing.T) {
+			assert.Nil(t, l.Sync())
 		})
 
-		Convey("With 返回自身", func() {
+		t.Run("With 返回自身", func(t *testing.T) {
 			result := l.With(logcore.Field{Key: "k", Value: "v"})
-			So(result, ShouldResemble, l)
+			assert.EqualValues(t, l, result)
 		})
 
-		Convey("AddCallerSkip 返回自身", func() {
+		t.Run("AddCallerSkip 返回自身", func(t *testing.T) {
 			result := l.AddCallerSkip(2)
-			So(result, ShouldResemble, l)
+			assert.EqualValues(t, l, result)
 		})
 	})
 }
 
 func TestNopLoggerInterface(t *testing.T) {
-	Convey("NopLogger 实现 Logger 接口", t, func() {
+	t.Run("NopLogger 实现 Logger 接口", func(t *testing.T) {
 		var l logcore.Logger = NopLogger{}
-		So(l, ShouldNotBeNil)
+		assert.NotNil(t, l)
 	})
 }

@@ -6,72 +6,72 @@ import (
 	"path/filepath"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGzipUncompressor(t *testing.T) {
-	Convey("GzipUncompressor 测试", t, func() {
+	t.Run("GzipUncompressor 测试", func(t *testing.T) {
 		u := GzipUncompressor()
-		So(u, ShouldNotBeNil)
+		assert.NotNil(t, u)
 	})
 }
 
 func TestBzip2Uncompressor(t *testing.T) {
-	Convey("Bzip2Uncompressor 测试", t, func() {
+	t.Run("Bzip2Uncompressor 测试", func(t *testing.T) {
 		u := Bzip2Uncompressor()
-		So(u, ShouldNotBeNil)
+		assert.NotNil(t, u)
 	})
 }
 
 func TestXzUncompressor(t *testing.T) {
-	Convey("XzUncompressor 测试", t, func() {
+	t.Run("XzUncompressor 测试", func(t *testing.T) {
 		u := XzUncompressor()
-		So(u, ShouldNotBeNil)
+		assert.NotNil(t, u)
 	})
 }
 
 func TestZstdUncompressor(t *testing.T) {
-	Convey("ZstdUncompressor 测试", t, func() {
+	t.Run("ZstdUncompressor 测试", func(t *testing.T) {
 		u := ZstdUncompressor()
-		So(u, ShouldNotBeNil)
+		assert.NotNil(t, u)
 	})
 }
 
 func TestUncompressorType(t *testing.T) {
-	Convey("Uncompressor 类型测试", t, func() {
+	t.Run("Uncompressor 类型测试", func(t *testing.T) {
 		var u Uncompressor = GzipUncompressor()
-		So(u, ShouldNotBeNil)
+		assert.NotNil(t, u)
 	})
 }
 
 func TestUnzip(t *testing.T) {
-	Convey("Unzip 测试", t, func() {
-		Convey("解压不存在的文件返回错误", func() {
+	t.Run("Unzip 测试", func(t *testing.T) {
+		t.Run("解压不存在的文件返回错误", func(t *testing.T) {
 			err := Unzip("/nonexistent/zip/file.zip", "/tmp/test_unzip")
-			So(err, ShouldNotBeNil)
+			assert.NotNil(t, err)
 		})
 
-		Convey("解压有效的zip文件", func() {
+		t.Run("解压有效的zip文件", func(t *testing.T) {
 			tmpDir := t.TempDir()
 			zipPath := filepath.Join(tmpDir, "test.zip")
 
 			zf, err := os.Create(zipPath)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 			zw := zip.NewWriter(zf)
 			w, err := zw.Create("test.txt")
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 			_, err = w.Write([]byte("hello world"))
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 			zw.Close()
 			zf.Close()
 
 			destDir := filepath.Join(tmpDir, "output")
 			err = Unzip(zipPath, destDir)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 
 			content, err := os.ReadFile(filepath.Join(destDir, "test.txt"))
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "hello world")
+			assert.Nil(t, err)
+			assert.Equal(t, "hello world", string(content))
 		})
 	})
 }

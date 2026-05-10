@@ -3,130 +3,130 @@ package ds
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLinkStackPush(t *testing.T) {
-	Convey("LinkStack Push 测试", t, func() {
-		Convey("Push 空栈", func() {
+	t.Run("LinkStack Push 测试", func(t *testing.T) {
+		t.Run("Push 空栈", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			s.Push(1)
-			So(s.Size(), ShouldEqual, 1)
-			So(s.Empty(), ShouldBeFalse)
+			assert.Equal(t, 1, s.Size())
+			assert.False(t, s.Empty())
 		})
 
-		Convey("Push 多个元素", func() {
+		t.Run("Push 多个元素", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			for i := 0; i < 10; i++ {
 				s.Push(i)
 			}
-			So(s.Size(), ShouldEqual, 10)
+			assert.Equal(t, 10, s.Size())
 		})
 	})
 }
 
 func TestLinkStackPop(t *testing.T) {
-	Convey("LinkStack Pop 测试", t, func() {
-		Convey("空栈 Pop panic", func() {
+	t.Run("LinkStack Pop 测试", func(t *testing.T) {
+		t.Run("空栈 Pop panic", func(t *testing.T) {
 			s := NewLinkStack[int]()
-			So(func() { s.Pop() }, ShouldPanic)
+			assert.Panics(t, func() { s.Pop() })
 		})
 
-		Convey("Pop 返回最后Push的元素", func() {
+		t.Run("Pop 返回最后Push的元素", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			s.Push(1)
 			s.Push(2)
 			s.Push(3)
 			v, ok := s.Pop()
-			So(ok, ShouldBeTrue)
-			So(v, ShouldEqual, 3)
+			assert.True(t, ok)
+			assert.Equal(t, 3, v)
 		})
 	})
 }
 
 func TestLinkStackPeek(t *testing.T) {
-	Convey("LinkStack Peek 测试", t, func() {
-		Convey("空栈 Peek 返回零值和false", func() {
+	t.Run("LinkStack Peek 测试", func(t *testing.T) {
+		t.Run("空栈 Peek 返回零值和false", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			v, ok := s.Peek()
-			So(ok, ShouldBeFalse)
-			So(v, ShouldEqual, 0)
+			assert.False(t, ok)
+			assert.Equal(t, 0, v)
 		})
 
-		Convey("Peek 返回栈顶元素但不移除", func() {
+		t.Run("Peek 返回栈顶元素但不移除", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			s.Push(1)
 			s.Push(2)
 			v, ok := s.Peek()
-			So(ok, ShouldBeTrue)
-			So(v, ShouldEqual, 2)
-			So(s.Size(), ShouldEqual, 2)
+			assert.True(t, ok)
+			assert.Equal(t, 2, v)
+			assert.Equal(t, 2, s.Size())
 		})
 
-		Convey("多次 Peek 返回相同结果", func() {
+		t.Run("多次 Peek 返回相同结果", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			s.Push(42)
 			for i := 0; i < 5; i++ {
 				v, ok := s.Peek()
-				So(ok, ShouldBeTrue)
-				So(v, ShouldEqual, 42)
+				assert.True(t, ok)
+				assert.Equal(t, 42, v)
 			}
-			So(s.Size(), ShouldEqual, 1)
+			assert.Equal(t, 1, s.Size())
 		})
 	})
 }
 
 func TestLinkStackEmpty(t *testing.T) {
-	Convey("LinkStack Empty 测试", t, func() {
-		Convey("新栈为空", func() {
+	t.Run("LinkStack Empty 测试", func(t *testing.T) {
+		t.Run("新栈为空", func(t *testing.T) {
 			s := NewLinkStack[int]()
-			So(s.Empty(), ShouldBeTrue)
+			assert.True(t, s.Empty())
 		})
 
-		Convey("Push后不为空", func() {
+		t.Run("Push后不为空", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			s.Push(1)
-			So(s.Empty(), ShouldBeFalse)
+			assert.False(t, s.Empty())
 		})
 	})
 }
 
 func TestLinkStackSize(t *testing.T) {
-	Convey("LinkStack Size 测试", t, func() {
-		Convey("新栈大小为0", func() {
+	t.Run("LinkStack Size 测试", func(t *testing.T) {
+		t.Run("新栈大小为0", func(t *testing.T) {
 			s := NewLinkStack[int]()
-			So(s.Size(), ShouldEqual, 0)
+			assert.Equal(t, 0, s.Size())
 		})
 
-		Convey("Push 后大小正确", func() {
+		t.Run("Push 后大小正确", func(t *testing.T) {
 			s := NewLinkStack[int]()
 			s.Push(1)
 			s.Push(2)
-			So(s.Size(), ShouldEqual, 2)
+			assert.Equal(t, 2, s.Size())
 		})
 	})
 }
 
 func TestLinkStackStringType(t *testing.T) {
-	Convey("LinkStack 字符串类型测试", t, func() {
+	t.Run("LinkStack 字符串类型测试", func(t *testing.T) {
 		s := NewLinkStack[string]()
 		s.Push("hello")
 		s.Push("world")
 		v, ok := s.Pop()
-		So(ok, ShouldBeTrue)
-		So(v, ShouldEqual, "world")
+		assert.True(t, ok)
+		assert.Equal(t, "world", v)
 		v, ok = s.Pop()
-		So(ok, ShouldBeTrue)
-		So(v, ShouldEqual, "hello")
+		assert.True(t, ok)
+		assert.Equal(t, "hello", v)
 	})
 }
 
 func TestLinkStackInterface(t *testing.T) {
-	Convey("LinkStack 实现 Stack 接口", t, func() {
+	t.Run("LinkStack 实现 Stack 接口", func(t *testing.T) {
 		var s Stack[int] = NewLinkStack[int]()
 		s.Push(1)
 		v, ok := s.Pop()
-		So(ok, ShouldBeTrue)
-		So(v, ShouldEqual, 1)
+		assert.True(t, ok)
+		assert.Equal(t, 1, v)
 	})
 }

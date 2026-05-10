@@ -8,123 +8,123 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTransFields(t *testing.T) {
-	Convey("transFields 测试", t, func() {
-		Convey("Bool field", func() {
+	t.Run("transFields 测试", func(t *testing.T) {
+		t.Run("Bool field", func(t *testing.T) {
 			fields := []logcore.Field{{Key: "active", Kind: reflect.Bool, Value: true}}
 			result := transFields(fields)
-			So(len(result), ShouldEqual, 1)
-			So(result[0].Key, ShouldEqual, "active")
+			assert.Equal(t, 1, len(result))
+			assert.Equal(t, "active", result[0].Key)
 		})
 
-		Convey("String field", func() {
+		t.Run("String field", func(t *testing.T) {
 			fields := []logcore.Field{{Key: "name", Kind: reflect.String, Value: "test"}}
 			result := transFields(fields)
-			So(len(result), ShouldEqual, 1)
+			assert.Equal(t, 1, len(result))
 		})
 
-		Convey("Int field", func() {
+		t.Run("Int field", func(t *testing.T) {
 			fields := []logcore.Field{{Key: "count", Kind: reflect.Int, Value: 42}}
 			result := transFields(fields)
-			So(len(result), ShouldEqual, 1)
+			assert.Equal(t, 1, len(result))
 		})
 
-		Convey("Float64 field", func() {
+		t.Run("Float64 field", func(t *testing.T) {
 			fields := []logcore.Field{{Key: "pi", Kind: reflect.Float64, Value: 3.14}}
 			result := transFields(fields)
-			So(len(result), ShouldEqual, 1)
+			assert.Equal(t, 1, len(result))
 		})
 
-		Convey("Any field (default case)", func() {
+		t.Run("Any field (default case)", func(t *testing.T) {
 			fields := []logcore.Field{{Key: "data", Value: map[string]int{"a": 1}}}
 			result := transFields(fields)
-			So(len(result), ShouldEqual, 1)
-			So(result[0].Key, ShouldEqual, "data")
+			assert.Equal(t, 1, len(result))
+			assert.Equal(t, "data", result[0].Key)
 		})
 
-		Convey("Error field from Value", func() {
+		t.Run("Error field from Value", func(t *testing.T) {
 			fields := []logcore.Field{{Key: "err", Value: "error message"}}
 			result := transFields(fields)
-			So(len(result), ShouldEqual, 1)
+			assert.Equal(t, 1, len(result))
 		})
 	})
 }
 
 func TestNewInstance(t *testing.T) {
-	Convey("NewInstance 测试", t, func() {
-		Convey("有效配置创建实例", func() {
+	t.Run("NewInstance 测试", func(t *testing.T) {
+		t.Run("有效配置创建实例", func(t *testing.T) {
 			cfg := logcore.DefaultLoggerConf()
 			ins, err := NewInstance(cfg)
-			So(err, ShouldBeNil)
-			So(ins, ShouldNotBeNil)
+			assert.Nil(t, err)
+			assert.NotNil(t, ins)
 		})
 
-		Convey("无效level返回错误", func() {
+		t.Run("无效level返回错误", func(t *testing.T) {
 			cfg := logcore.DefaultLoggerConf()
 			cfg.Level = "invalid-level"
 			_, err := NewInstance(cfg)
-			So(err, ShouldNotBeNil)
+			assert.NotNil(t, err)
 		})
 	})
 }
 
 func TestZapLoggerMethods(t *testing.T) {
-	Convey("zapLogger 方法测试", t, func() {
+	t.Run("zapLogger 方法测试", func(t *testing.T) {
 		cfg := logcore.DefaultLoggerConf()
 		zl, err := NewInstance(cfg)
-		So(err, ShouldBeNil)
+		assert.Nil(t, err)
 
-		Convey("Debug/Info/Warn/Error 不panic", func() {
-			So(func() { zl.Debug("test") }, ShouldNotPanic)
-			So(func() { zl.Info("test") }, ShouldNotPanic)
-			So(func() { zl.Warn("test") }, ShouldNotPanic)
-			So(func() { zl.Error("test") }, ShouldNotPanic)
+		t.Run("Debug/Info/Warn/Error 不panic", func(t *testing.T) {
+			assert.NotPanics(t, func() { zl.Debug("test") })
+			assert.NotPanics(t, func() { zl.Info("test") })
+			assert.NotPanics(t, func() { zl.Warn("test") })
+			assert.NotPanics(t, func() { zl.Error("test") })
 		})
 
-		Convey("Debugf/Infof/Warnf/Errorf 不panic", func() {
-			So(func() { zl.Debugf("test %d", 1) }, ShouldNotPanic)
-			So(func() { zl.Infof("test %d", 1) }, ShouldNotPanic)
-			So(func() { zl.Warnf("test %d", 1) }, ShouldNotPanic)
-			So(func() { zl.Errorf("test %d", 1) }, ShouldNotPanic)
+		t.Run("Debugf/Infof/Warnf/Errorf 不panic", func(t *testing.T) {
+			assert.NotPanics(t, func() { zl.Debugf("test %d", 1) })
+			assert.NotPanics(t, func() { zl.Infof("test %d", 1) })
+			assert.NotPanics(t, func() { zl.Warnf("test %d", 1) })
+			assert.NotPanics(t, func() { zl.Errorf("test %d", 1) })
 		})
 
-		Convey("Log/Logf 不panic", func() {
-			So(func() { zl.Log("info", "test") }, ShouldNotPanic)
-			So(func() { zl.Logf("info", "test %d", 1) }, ShouldNotPanic)
+		t.Run("Log/Logf 不panic", func(t *testing.T) {
+			assert.NotPanics(t, func() { zl.Log("info", "test") })
+			assert.NotPanics(t, func() { zl.Logf("info", "test %d", 1) })
 		})
 
-		Convey("With 返回新Logger", func() {
+		t.Run("With 返回新Logger", func(t *testing.T) {
 			l2 := zl.With(logcore.Field{Key: "key", Value: "value"})
-			So(l2, ShouldNotBeNil)
+			assert.NotNil(t, l2)
 		})
 
-		Convey("AddCallerSkip", func() {
+		t.Run("AddCallerSkip", func(t *testing.T) {
 			l2 := zl.AddCallerSkip(1)
-			So(l2, ShouldNotBeNil)
+			assert.NotNil(t, l2)
 		})
 
-		Convey("Sync", func() {
+		t.Run("Sync", func(t *testing.T) {
 			_ = zl.Sync()
 		})
 	})
 }
 
 func TestZapLoggerInterface(t *testing.T) {
-	Convey("zapLogger 实现 Logger 接口", t, func() {
+	t.Run("zapLogger 实现 Logger 接口", func(t *testing.T) {
 		cfg := logcore.DefaultLoggerConf()
 		zl, err := NewInstance(cfg)
-		So(err, ShouldBeNil)
+		assert.Nil(t, err)
 
 		var l logcore.Logger = zl
-		So(l, ShouldNotBeNil)
+		assert.NotNil(t, l)
 	})
 }
 
 func TestZapLoggerNullConfig(t *testing.T) {
-	Convey("空配置创建实例", t, func() {
+	t.Run("空配置创建实例", func(t *testing.T) {
 		cfg := &logcore.LoggerConf{
 			Dir:        ".",
 			Name:       "test",
@@ -136,24 +136,24 @@ func TestZapLoggerNullConfig(t *testing.T) {
 			Console:    false,
 		}
 		ins, err := NewInstance(cfg)
-		So(err, ShouldBeNil)
-		So(ins, ShouldNotBeNil)
+		assert.Nil(t, err)
+		assert.NotNil(t, ins)
 	})
 }
 
 func TestNewConsoleCore(t *testing.T) {
-	Convey("newConsoleCore 测试", t, func() {
+	t.Run("newConsoleCore 测试", func(t *testing.T) {
 		level := zap.NewAtomicLevel()
 		core := newConsoleCore(level)
-		So(core, ShouldNotBeNil)
+		assert.NotNil(t, core)
 	})
 }
 
 func TestNewCore(t *testing.T) {
-	Convey("newCore 测试", t, func() {
+	t.Run("newCore 测试", func(t *testing.T) {
 		cfg := logcore.DefaultLoggerConf()
 		level := zap.NewAtomicLevel()
 		core := newCore(cfg, func(l zapcore.Level) bool { return l >= level.Level() }, "/tmp/test.log")
-		So(core, ShouldNotBeNil)
+		assert.NotNil(t, core)
 	})
 }

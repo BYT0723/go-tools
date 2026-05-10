@@ -5,116 +5,115 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCounterDiff(t *testing.T) {
-	Convey("counter Diff 测试", t, func() {
-		Convey("首次更新返回0", func() {
+	t.Run("counter Diff 测试", func(t *testing.T) {
+		t.Run("首次更新返回0", func(t *testing.T) {
 			c := NewCounter()
-			So(c.Diff(100.0), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.Diff(100.0))
 		})
 
-		Convey("第二次更新返回差值", func() {
+		t.Run("第二次更新返回差值", func(t *testing.T) {
 			c := NewCounter()
 			c.Diff(100.0)
-			So(c.Diff(150.0), ShouldEqual, 50.0)
+			assert.Equal(t, 50.0, c.Diff(150.0))
 		})
 
-		Convey("值减少返回负差值", func() {
+		t.Run("值减少返回负差值", func(t *testing.T) {
 			c := NewCounter()
 			c.Diff(150.0)
-			So(c.Diff(100.0), ShouldEqual, -50.0)
+			assert.Equal(t, -50.0, c.Diff(100.0))
 		})
 
-		Convey("连续多次更新", func() {
+		t.Run("连续多次更新", func(t *testing.T) {
 			c := NewCounter()
-			So(c.Diff(10.0), ShouldEqual, 0)
-			So(c.Diff(20.0), ShouldEqual, 10.0)
-			So(c.Diff(15.0), ShouldEqual, -5.0)
-			So(c.Diff(30.0), ShouldEqual, 15.0)
+			assert.Equal(t, 0.0, c.Diff(10.0))
+			assert.Equal(t, 10.0, c.Diff(20.0))
+			assert.Equal(t, -5.0, c.Diff(15.0))
+			assert.Equal(t, 15.0, c.Diff(30.0))
 		})
 	})
 }
 
 func TestCounterRate(t *testing.T) {
-	Convey("counter Rate 测试", t, func() {
-		Convey("首次更新返回0", func() {
+	t.Run("counter Rate 测试", func(t *testing.T) {
+		t.Run("首次更新返回0", func(t *testing.T) {
 			c := NewCounter()
-			So(c.Rate(100.0), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.Rate(100.0))
 		})
 	})
 }
 
 func TestCounterRateIn(t *testing.T) {
-	Convey("counter RateIn 测试", t, func() {
-		Convey("首次更新返回0", func() {
+	t.Run("counter RateIn 测试", func(t *testing.T) {
+		t.Run("首次更新返回0", func(t *testing.T) {
 			c := NewCounter()
-			So(c.RateIn(100.0, time.Second), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.RateIn(100.0, time.Second))
 		})
 
-		Convey("interval为0或负数返回0", func() {
+		t.Run("interval为0或负数返回0", func(t *testing.T) {
 			c := NewCounter()
 			c.Diff(100.0)
 			time.Sleep(time.Millisecond)
-			So(c.RateIn(200.0, 0), ShouldEqual, 0)
-			So(c.RateIn(300.0, -time.Second), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.RateIn(200.0, 0))
+			assert.Equal(t, 0.0, c.RateIn(300.0, -time.Second))
 		})
 
-		Convey("计算速率", func() {
+		t.Run("计算速率", func(t *testing.T) {
 			c := NewCounter()
 			c.Diff(100.0)
 			time.Sleep(100 * time.Millisecond)
 			rate := c.RateIn(300.0, time.Second)
-			// 差值=200, 时间=约0.1秒, 标准化到每秒 ≈ 2000
-			So(rate, ShouldBeGreaterThan, 0)
-			So(rate, ShouldBeLessThan, 2500.0)
+			assert.Greater(t, rate, 0.0)
+			assert.Less(t, rate, 2500.0)
 		})
 	})
 }
 
 func TestMutexCounterDiff(t *testing.T) {
-	Convey("mutexCounter Diff 测试", t, func() {
-		Convey("首次更新返回0", func() {
+	t.Run("mutexCounter Diff 测试", func(t *testing.T) {
+		t.Run("首次更新返回0", func(t *testing.T) {
 			c := NewMutexCounter()
-			So(c.Diff(100.0), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.Diff(100.0))
 		})
 
-		Convey("第二次更新返回差值", func() {
+		t.Run("第二次更新返回差值", func(t *testing.T) {
 			c := NewMutexCounter()
 			c.Diff(100.0)
-			So(c.Diff(150.0), ShouldEqual, 50.0)
+			assert.Equal(t, 50.0, c.Diff(150.0))
 		})
 	})
 }
 
 func TestMutexCounterRate(t *testing.T) {
-	Convey("mutexCounter Rate 测试", t, func() {
-		Convey("首次更新返回0", func() {
+	t.Run("mutexCounter Rate 测试", func(t *testing.T) {
+		t.Run("首次更新返回0", func(t *testing.T) {
 			c := NewMutexCounter()
-			So(c.Rate(100.0), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.Rate(100.0))
 		})
 	})
 }
 
 func TestMutexCounterRateIn(t *testing.T) {
-	Convey("mutexCounter RateIn 测试", t, func() {
-		Convey("首次更新返回0", func() {
+	t.Run("mutexCounter RateIn 测试", func(t *testing.T) {
+		t.Run("首次更新返回0", func(t *testing.T) {
 			c := NewMutexCounter()
-			So(c.RateIn(100.0, time.Second), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.RateIn(100.0, time.Second))
 		})
 
-		Convey("interval为0返回0", func() {
+		t.Run("interval为0返回0", func(t *testing.T) {
 			c := NewMutexCounter()
 			c.Diff(100.0)
-			So(c.RateIn(200.0, 0), ShouldEqual, 0)
+			assert.Equal(t, 0.0, c.RateIn(200.0, 0))
 		})
 	})
 }
 
 func TestMutexCounterConcurrent(t *testing.T) {
-	Convey("mutexCounter 并发测试", t, func() {
-		Convey("多个goroutine并发更新", func() {
+	t.Run("mutexCounter 并发测试", func(t *testing.T) {
+		t.Run("多个goroutine并发更新", func(t *testing.T) {
 			c := NewMutexCounter()
 			var wg sync.WaitGroup
 			n := 100
@@ -133,15 +132,15 @@ func TestMutexCounterConcurrent(t *testing.T) {
 }
 
 func TestCounterInterface(t *testing.T) {
-	Convey("Counter 接口实现验证", t, func() {
-		Convey("counter 实现 Counter 接口", func() {
+	t.Run("Counter 接口实现验证", func(t *testing.T) {
+		t.Run("counter 实现 Counter 接口", func(t *testing.T) {
 			var c Counter = NewCounter()
-			So(c, ShouldNotBeNil)
+			assert.NotNil(t, c)
 		})
 
-		Convey("mutexCounter 实现 Counter 接口", func() {
+		t.Run("mutexCounter 实现 Counter 接口", func(t *testing.T) {
 			var c Counter = NewMutexCounter()
-			So(c, ShouldNotBeNil)
+			assert.NotNil(t, c)
 		})
 	})
 }

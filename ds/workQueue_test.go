@@ -4,90 +4,90 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWorkQueueAddTopic(t *testing.T) {
-	Convey("WorkQueue AddTopic 测试", t, func() {
+	t.Run("WorkQueue AddTopic 测试", func(t *testing.T) {
 		wq := NewWorkQueue[int]()
 
-		Convey("添加新topic成功", func() {
+		t.Run("添加新topic成功", func(t *testing.T) {
 			err := wq.AddTopic("topic1", 10)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("重复添加同一topic返回错误", func() {
+		t.Run("重复添加同一topic返回错误", func(t *testing.T) {
 			wq.AddTopic("topic1", 10)
 			err := wq.AddTopic("topic1", 10)
-			So(err, ShouldEqual, ErrTopicAlreadyExists)
+			assert.Equal(t, ErrTopicAlreadyExists, err)
 		})
 	})
 }
 
 func TestWorkQueueRemoveTopic(t *testing.T) {
-	Convey("WorkQueue RemoveTopic 测试", t, func() {
-		Convey("移除已存在的topic", func() {
+	t.Run("WorkQueue RemoveTopic 测试", func(t *testing.T) {
+		t.Run("移除已存在的topic", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 10)
 			err := wq.RemoveTopic("topic1")
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("移除不存在的topic不返回错误", func() {
+		t.Run("移除不存在的topic不返回错误", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			err := wq.RemoveTopic("nonexistent")
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 	})
 }
 
 func TestWorkQueuePublish(t *testing.T) {
-	Convey("WorkQueue Publish 测试", t, func() {
-		Convey("发布消息到已有topic", func() {
+	t.Run("WorkQueue Publish 测试", func(t *testing.T) {
+		t.Run("发布消息到已有topic", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 10)
 			err := wq.Publish("topic1", 42)
-			So(err, ShouldBeNil)
+			assert.Nil(t, err)
 		})
 
-		Convey("发布消息到不存在topic返回错误", func() {
+		t.Run("发布消息到不存在topic返回错误", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			err := wq.Publish("nonexistent", 42)
-			So(err, ShouldEqual, ErrTopicNotFound)
+			assert.Equal(t, ErrTopicNotFound, err)
 		})
 
-		Convey("发布到满队列返回队列满错误", func() {
+		t.Run("发布到满队列返回队列满错误", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 1)
 			wq.Publish("topic1", 1)
 			err := wq.Publish("topic1", 2)
-			So(err, ShouldEqual, ErrTopicQueueFull)
+			assert.Equal(t, ErrTopicQueueFull, err)
 		})
 	})
 }
 
 func TestWorkQueueSubscribe(t *testing.T) {
-	Convey("WorkQueue Subscribe 测试", t, func() {
-		Convey("订阅已存在的topic成功", func() {
+	t.Run("WorkQueue Subscribe 测试", func(t *testing.T) {
+		t.Run("订阅已存在的topic成功", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 10)
 			ch, err := wq.Subscribe("topic1")
-			So(err, ShouldBeNil)
-			So(ch, ShouldNotBeNil)
+			assert.Nil(t, err)
+			assert.NotNil(t, ch)
 		})
 
-		Convey("订阅不存在的topic返回错误", func() {
+		t.Run("订阅不存在的topic返回错误", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			ch, err := wq.Subscribe("nonexistent")
-			So(err, ShouldEqual, ErrTopicNotFound)
-			So(ch, ShouldBeNil)
+			assert.Equal(t, ErrTopicNotFound, err)
+			assert.Nil(t, ch)
 		})
 	})
 }
 
 func TestWorkQueuePubSub(t *testing.T) {
-	Convey("WorkQueue 发布订阅消息传递测试", t, func() {
-		Convey("订阅者能收到发布的消息", func() {
+	t.Run("WorkQueue 发布订阅消息传递测试", func(t *testing.T) {
+		t.Run("订阅者能收到发布的消息", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 10)
 
@@ -102,10 +102,10 @@ func TestWorkQueuePubSub(t *testing.T) {
 
 			wq.Publish("topic1", 42)
 			wg.Wait()
-			So(result, ShouldEqual, 42)
+			assert.Equal(t, 42, result)
 		})
 
-		Convey("两个topic互不影响", func() {
+		t.Run("两个topic互不影响", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 10)
 			wq.AddTopic("topic2", 10)
@@ -116,30 +116,30 @@ func TestWorkQueuePubSub(t *testing.T) {
 			wq.Publish("topic1", 1)
 			wq.Publish("topic2", 2)
 
-			So(<-ch1, ShouldEqual, 1)
-			So(<-ch2, ShouldEqual, 2)
+			assert.Equal(t, 1, <-ch1)
+			assert.Equal(t, 2, <-ch2)
 		})
 	})
 }
 
 func TestWorkQueueClose(t *testing.T) {
-	Convey("WorkQueue Close 测试", t, func() {
-		Convey("Close 后channel被关闭", func() {
+	t.Run("WorkQueue Close 测试", func(t *testing.T) {
+		t.Run("Close 后channel被关闭", func(t *testing.T) {
 			wq := NewWorkQueue[int]()
 			wq.AddTopic("topic1", 10)
 			wq.Close()
 
 			ch, _ := wq.Subscribe("topic1")
 			_, ok := <-ch
-			So(ok, ShouldBeFalse)
+			assert.False(t, ok)
 		})
 	})
 }
 
 func TestWorkQueueErrors(t *testing.T) {
-	Convey("WorkQueue 错误变量测试", t, func() {
-		So(ErrTopicNotFound.Error(), ShouldEqual, "topic not found")
-		So(ErrTopicAlreadyExists.Error(), ShouldEqual, "topic already exists")
-		So(ErrTopicQueueFull.Error(), ShouldEqual, "topic queue is full")
+	t.Run("WorkQueue 错误变量测试", func(t *testing.T) {
+		assert.Equal(t, "topic not found", ErrTopicNotFound.Error())
+		assert.Equal(t, "topic already exists", ErrTopicAlreadyExists.Error())
+		assert.Equal(t, "topic queue is full", ErrTopicQueueFull.Error())
 	})
 }

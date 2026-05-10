@@ -7,168 +7,168 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOptionFuncs(t *testing.T) {
-	Convey("Option 函数测试", t, func() {
-		Convey("WithConfigName", func() {
+	t.Run("Option 函数测试", func(t *testing.T) {
+		t.Run("WithConfigName", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			WithConfigName("test")(c)
-			So(c.viper.GetString("test"), ShouldNotBeNil)
+			assert.NotNil(t, c.viper.GetString("test"))
 		})
 
-		Convey("WithConfigType", func() {
+		t.Run("WithConfigType", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			WithConfigType("yaml")(c)
 		})
 
-		Convey("WithConfigFile", func() {
+		t.Run("WithConfigFile", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			WithConfigFile("/tmp/test.yaml")(c)
 		})
 
-		Convey("WithConfigPath", func() {
+		t.Run("WithConfigPath", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			WithConfigPath("/tmp", "/etc")(c)
 		})
 
-		Convey("OnConfigChange", func() {
+		t.Run("OnConfigChange", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			h := func(e fsnotify.Event) {}
 			OnConfigChange(h)(c)
-			So(c.onConfigChange, ShouldNotBeNil)
+			assert.NotNil(t, c.onConfigChange)
 		})
 
-		Convey("WithConfigTag", func() {
+		t.Run("WithConfigTag", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			WithConfigTag("json")(c)
 		})
 
-		Convey("WithCustomDeocodeOpt", func() {
+		t.Run("WithCustomDeocodeOpt", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			WithCustomDeocodeOpt(func(dc *mapstructure.DecoderConfig) {})(c)
 		})
 
-		Convey("WithDefaultUnMarshal", func() {
+		t.Run("WithDefaultUnMarshal", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			var payload map[string]any
 			WithDefaultUnMarshal(&payload)(c)
-			So(c.unmarshaler, ShouldNotBeNil)
+			assert.NotNil(t, c.unmarshaler)
 		})
 
-		Convey("WithCustomUnMarshal", func() {
+		t.Run("WithCustomUnMarshal", func(t *testing.T) {
 			c := &_config{viper: viper.New()}
 			um := func(v *viper.Viper) error { return nil }
 			WithCustomUnMarshal(um)(c)
-			So(c.unmarshaler, ShouldNotBeNil)
+			assert.NotNil(t, c.unmarshaler)
 		})
 
-		Convey("WithRemoteConfig returns option", func() {
+		t.Run("WithRemoteConfig returns option", func(t *testing.T) {
 			opt := WithRemoteConfig("localhost", "/path")
-			So(opt, ShouldNotBeNil)
+			assert.NotNil(t, opt)
 		})
 	})
 }
 
 func TestChangeHandler(t *testing.T) {
-	Convey("ChangeHandler 测试", t, func() {
-		Convey("Restart 生成 ChangeHandler", func() {
+	t.Run("ChangeHandler 测试", func(t *testing.T) {
+		t.Run("Restart 生成 ChangeHandler", func(t *testing.T) {
 			h := Restart()
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 
-		Convey("Reload 生成 ChangeHandler", func() {
+		t.Run("Reload 生成 ChangeHandler", func(t *testing.T) {
 			var target map[string]string
 			h := Reload(&target)
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 
-		Convey("ReloadKey 生成 ChangeHandler", func() {
+		t.Run("ReloadKey 生成 ChangeHandler", func(t *testing.T) {
 			var target map[string]string
 			h := ReloadKey("key", &target)
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestChangeMatcher(t *testing.T) {
-	Convey("ChangeMatcher 测试", t, func() {
-		Convey("matcher返回false时不触发handler操作", func() {
+	t.Run("ChangeMatcher 测试", func(t *testing.T) {
+		t.Run("matcher返回false时不触发handler操作", func(t *testing.T) {
 			alwaysFalse := func(e fsnotify.Event) bool { return false }
 			h := Restart(alwaysFalse)
-			So(func() {
+			assert.NotPanics(t, func() {
 				h(fsnotify.Event{Name: "test", Op: fsnotify.Write})
-			}, ShouldNotPanic)
+			})
 		})
 
-		Convey("多个matcher全部返回true时触发handler", func() {
+		t.Run("多个matcher全部返回true时触发handler", func(t *testing.T) {
 			alwaysTrue1 := func(e fsnotify.Event) bool { return true }
 			alwaysTrue2 := func(e fsnotify.Event) bool { return true }
 			h := Reload(new(int), alwaysTrue1, alwaysTrue2)
 			// 由于 Unmarshal 在 nil config 上会 panic
-			So(func() {
+			assert.Panics(t, func() {
 				h(fsnotify.Event{Name: "test", Op: fsnotify.Write})
-			}, ShouldPanic)
+			})
 		})
 
-		Convey("多个matcher中有一个返回false则不触发", func() {
+		t.Run("多个matcher中有一个返回false则不触发", func(t *testing.T) {
 			h := Reload(new(int),
 				func(e fsnotify.Event) bool { return false },
 				func(e fsnotify.Event) bool { return true },
 			)
-			So(func() {
+			assert.NotPanics(t, func() {
 				h(fsnotify.Event{Name: "test", Op: fsnotify.Write})
-			}, ShouldNotPanic)
+			})
 		})
 	})
 }
 
 func TestUnmarshaler(t *testing.T) {
-	Convey("Unmarshaler 类型测试", t, func() {
+	t.Run("Unmarshaler 类型测试", func(t *testing.T) {
 		var u Unmarshaler = func(v *viper.Viper) error {
 			return nil
 		}
-		So(u, ShouldNotBeNil)
+		assert.NotNil(t, u)
 	})
 }
 
 func TestRestartChangeHandler(t *testing.T) {
-	Convey("Restart ChangeHandler", t, func() {
-		Convey("Restart 构造 ChangeHandler 类型正确", func() {
+	t.Run("Restart ChangeHandler", func(t *testing.T) {
+		t.Run("Restart 构造 ChangeHandler 类型正确", func(t *testing.T) {
 			h := Restart(func(e fsnotify.Event) bool { return false })
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 
-		Convey("matcher返回false时不触发重启", func() {
+		t.Run("matcher返回false时不触发重启", func(t *testing.T) {
 			h := Restart(func(e fsnotify.Event) bool { return false })
-			So(func() {
+			assert.NotPanics(t, func() {
 				h(fsnotify.Event{Name: "test", Op: fsnotify.Write})
-			}, ShouldNotPanic)
+			})
 		})
 	})
 }
 
 func TestReloadChangeHandler(t *testing.T) {
-	Convey("Reload ChangeHandler", t, func() {
-		Convey("Reload 构造 ChangeHandler", func() {
+	t.Run("Reload ChangeHandler", func(t *testing.T) {
+		t.Run("Reload 构造 ChangeHandler", func(t *testing.T) {
 			var target struct {
 				Name string `cfg:"name"`
 			}
 			h := Reload(&target)
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestReloadKeyChangeHandler(t *testing.T) {
-	Convey("ReloadKey ChangeHandler", t, func() {
-		Convey("ReloadKey 构造 ChangeHandler", func() {
+	t.Run("ReloadKey ChangeHandler", func(t *testing.T) {
+		t.Run("ReloadKey 构造 ChangeHandler", func(t *testing.T) {
 			var target struct {
 				Name string `cfg:"name"`
 			}
 			h := ReloadKey("section", &target)
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }

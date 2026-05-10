@@ -7,8 +7,7 @@ import (
 
 	"github.com/BYT0723/go-tools/logx"
 	"github.com/gin-gonic/gin"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -16,8 +15,8 @@ func init() {
 }
 
 func TestWithTraceLogger(t *testing.T) {
-	Convey("WithTraceLogger 测试", t, func() {
-		Convey("logger为nil不影响请求处理", func() {
+	t.Run("WithTraceLogger 测试", func(t *testing.T) {
+		t.Run("logger为nil不影响请求处理", func(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			router := gin.New()
 			router.Use(WithTraceLogger(nil))
@@ -27,96 +26,96 @@ func TestWithTraceLogger(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
-			So(rec.Code, ShouldEqual, 200)
+			assert.Equal(t, 200, rec.Code)
 		})
 
-		Convey("返回 HandlerFunc 类型", func() {
+		t.Run("返回 HandlerFunc 类型", func(t *testing.T) {
 			h := WithTraceLogger(nil)
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithApiLog(t *testing.T) {
-	Convey("WithApiLog 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithApiLog 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithApiLog("info")
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 
-		Convey("带额外fields的 HandlerFunc", func() {
+		t.Run("带额外fields的 HandlerFunc", func(t *testing.T) {
 			h := WithApiLog("info", func(ctx *gin.Context) []logx.Field {
 				return []logx.Field{logx.String("custom", "value")}
 			})
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithTraceID(t *testing.T) {
-	Convey("WithTraceID 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithTraceID 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithTraceID(func(ctx *gin.Context) string {
 				return "trace-123"
 			})
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithSpanID(t *testing.T) {
-	Convey("WithSpanID 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithSpanID 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithSpanID(func(ctx *gin.Context) string { return "span-456" })
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithRequestID(t *testing.T) {
-	Convey("WithRequestID 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithRequestID 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithRequestID(func(ctx *gin.Context) string { return "req-789" })
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithService(t *testing.T) {
-	Convey("WithService 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithService 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithService("my-service")
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithVersion(t *testing.T) {
-	Convey("WithVersion 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithVersion 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithVersion("1.0.0")
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithEnv(t *testing.T) {
-	Convey("WithEnv 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithEnv 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			h := WithEnv("production")
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }
 
 func TestWithValue(t *testing.T) {
-	Convey("WithValue 测试", t, func() {
-		Convey("生成 HandlerFunc", func() {
+	t.Run("WithValue 测试", func(t *testing.T) {
+		t.Run("生成 HandlerFunc", func(t *testing.T) {
 			type keyType struct{}
 			h := WithValue(keyType{}, func(ctx *gin.Context) any {
 				return "value"
 			})
-			So(h, ShouldNotBeNil)
+			assert.NotNil(t, h)
 		})
 	})
 }

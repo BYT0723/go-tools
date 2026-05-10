@@ -4,334 +4,334 @@ import (
 	"sort"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSyncSetLen(t *testing.T) {
-	Convey("HashSet Len", t, func() {
-		Convey("Empty Set", func() {
-			So(NewSyncSet[int]().Len(), ShouldEqual, 0)
+	t.Run("HashSet Len", func(t *testing.T) {
+		t.Run("Empty Set", func(t *testing.T) {
+			assert.Equal(t, 0, NewSyncSet[int]().Len())
 		})
-		Convey("Non-Empty Set", func() {
-			So(NewSyncSet(1, 2, 3, 4).Len(), ShouldEqual, 4)
+		t.Run("Non-Empty Set", func(t *testing.T) {
+			assert.Equal(t, 4, NewSyncSet(1, 2, 3, 4).Len())
 		})
 	})
 }
 
 func TestSyncSetAppend(t *testing.T) {
-	Convey("HashSet append", t, func() {
-		Convey("Empty Set Append", func() {
+	t.Run("HashSet append", func(t *testing.T) {
+		t.Run("Empty Set Append", func(t *testing.T) {
 			s := NewSyncSet[int]()
 			s.Append(1, 2, 3, 4)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldEqual, []int{1, 2, 3, 4})
+			assert.Equal(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Append Self and More", func() {
+		t.Run("Append Self and More", func(t *testing.T) {
 			s := NewSyncSet(1, 2)
 			s.Append(1, 2, 3, 4)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldEqual, []int{1, 2, 3, 4})
+			assert.Equal(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Append Sub", func() {
+		t.Run("Append Sub", func(t *testing.T) {
 			s := NewSyncSet(1, 2, 3, 4)
 			s.Append(1, 2)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldEqual, []int{1, 2, 3, 4})
+			assert.Equal(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Append Self", func() {
+		t.Run("Append Self", func(t *testing.T) {
 			s := NewSyncSet(1, 2, 3, 4)
 			s.Append(1, 2, 3, 4)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldEqual, []int{1, 2, 3, 4})
+			assert.Equal(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Append More", func() {
+		t.Run("Append More", func(t *testing.T) {
 			s := NewSyncSet(1, 2, 3, 4)
 			s.Append(5, 6, 7, 8)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldEqual, []int{1, 2, 3, 4, 5, 6, 7, 8})
+			assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7, 8}, vs)
 		})
 	})
 }
 
 func TestSyncSetValues(t *testing.T) {
-	Convey("HashSet Values", t, func() {
-		Convey("Empty Set", func() {
-			So(NewSyncSet[int]().Values(), ShouldBeEmpty)
+	t.Run("HashSet Values", func(t *testing.T) {
+		t.Run("Empty Set", func(t *testing.T) {
+			assert.Empty(t, NewSyncSet[int]().Values())
 		})
-		Convey("Non-Empty Set", func() {
+		t.Run("Non-Empty Set", func(t *testing.T) {
 			vs := NewSyncSet(1, 2, 3, 4).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
 	})
 }
 
 func TestSyncSetRemove(t *testing.T) {
-	Convey("HashSet Remove", t, func() {
-		Convey("Empty Set", func() {
+	t.Run("HashSet Remove", func(t *testing.T) {
+		t.Run("Empty Set", func(t *testing.T) {
 			s := NewSyncSet[int]()
 			s.Remove(10)
-			So(s.Values(), ShouldBeEmpty)
+			assert.Empty(t, s.Values())
 		})
-		Convey("Non-Empty Set remove exist", func() {
+		t.Run("Non-Empty Set remove exist", func(t *testing.T) {
 			s := NewSyncSet(1, 2, 3, 4)
 			s.Remove(3)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 4})
+			assert.EqualValues(t, []int{1, 2, 4}, vs)
 		})
-		Convey("Non-Empty Set remove not exist", func() {
+		t.Run("Non-Empty Set remove not exist", func(t *testing.T) {
 			s := NewSyncSet(1, 2, 3, 4)
 			s.Remove(5)
 			vs := s.Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
 	})
 }
 
 func TestSyncSetContains(t *testing.T) {
-	Convey("HashSet Contains", t, func() {
-		Convey("Empty Set", func() {
-			So(NewSyncSet[int]().Contains(10), ShouldBeFalse)
+	t.Run("HashSet Contains", func(t *testing.T) {
+		t.Run("Empty Set", func(t *testing.T) {
+			assert.False(t, NewSyncSet[int]().Contains(10))
 		})
-		Convey("Non-Empty Set", func() {
-			So(NewSyncSet(1, 2, 3, 4).Contains(2), ShouldBeTrue)
-			So(NewSyncSet(1, 2, 3, 4).Contains(10), ShouldBeFalse)
+		t.Run("Non-Empty Set", func(t *testing.T) {
+			assert.True(t, NewSyncSet(1, 2, 3, 4).Contains(2))
+			assert.False(t, NewSyncSet(1, 2, 3, 4).Contains(10))
 		})
 	})
 }
 
 func TestSyncSetUnion(t *testing.T) {
-	Convey("HashSet Union", t, func() {
-		Convey("Two Empty Set", func() {
-			So(NewSyncSet[int]().Union(NewSyncSet[int]()).Values(), ShouldBeEmpty)
+	t.Run("HashSet Union", func(t *testing.T) {
+		t.Run("Two Empty Set", func(t *testing.T) {
+			assert.Empty(t, NewSyncSet[int]().Union(NewSyncSet[int]()).Values())
 		})
-		Convey("Union of non-empty and empty sets", func() {
+		t.Run("Union of non-empty and empty sets", func(t *testing.T) {
 			s1 := NewSyncSet[int]()
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.Union(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Union of non-empty and empty sets 2", func() {
+		t.Run("Union of non-empty and empty sets 2", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet[int]()
 			vs := s1.Union(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Union of two sets without intersection", func() {
+		t.Run("Union of two sets without intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(6, 7, 8, 9)
 			vs := s1.Union(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4, 6, 7, 8, 9})
+			assert.EqualValues(t, []int{1, 2, 3, 4, 6, 7, 8, 9}, vs)
 		})
-		Convey("Union of two sets with intersection", func() {
+		t.Run("Union of two sets with intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(3, 4, 5, 6)
 			vs := s1.Union(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4, 5, 6})
+			assert.EqualValues(t, []int{1, 2, 3, 4, 5, 6}, vs)
 		})
-		Convey("Union of two identical sets", func() {
+		t.Run("Union of two identical sets", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.Union(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Union of two sets without difference", func() {
+		t.Run("Union of two sets without difference", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(2, 3)
 			vs := s1.Union(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
 	})
 }
 
 func TestSyncSetIntersection(t *testing.T) {
-	Convey("HashSet Intersection", t, func() {
-		Convey("Two Empty Set", func() {
-			So(NewSyncSet[int]().Intersection(NewSyncSet[int]()).Values(), ShouldBeEmpty)
+	t.Run("HashSet Intersection", func(t *testing.T) {
+		t.Run("Two Empty Set", func(t *testing.T) {
+			assert.Empty(t, NewSyncSet[int]().Intersection(NewSyncSet[int]()).Values())
 		})
-		Convey("Intersection of non-empty and empty sets", func() {
+		t.Run("Intersection of non-empty and empty sets", func(t *testing.T) {
 			s1 := NewSyncSet[int]()
 			s2 := NewSyncSet(1, 2, 3, 4)
-			So(s1.Intersection(s2).Values(), ShouldBeEmpty)
+			assert.Empty(t, s1.Intersection(s2).Values())
 		})
-		Convey("Intersection of non-empty and empty sets 2", func() {
+		t.Run("Intersection of non-empty and empty sets 2", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet[int]()
-			So(s1.Intersection(s2).Values(), ShouldBeEmpty)
+			assert.Empty(t, s1.Intersection(s2).Values())
 		})
-		Convey("Intersection of two sets without intersection", func() {
+		t.Run("Intersection of two sets without intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(6, 7, 8, 9)
-			So(s1.Intersection(s2).Values(), ShouldBeEmpty)
+			assert.Empty(t, s1.Intersection(s2).Values())
 		})
-		Convey("Intersection of two sets with intersection", func() {
+		t.Run("Intersection of two sets with intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(3, 4, 5, 6)
 			vs := s1.Intersection(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{3, 4})
+			assert.EqualValues(t, []int{3, 4}, vs)
 		})
-		Convey("Intersection of two identical sets", func() {
+		t.Run("Intersection of two identical sets", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.Intersection(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Intersection of two sets without difference", func() {
+		t.Run("Intersection of two sets without difference", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(2, 3)
 			vs := s1.Intersection(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{2, 3})
+			assert.EqualValues(t, []int{2, 3}, vs)
 		})
 	})
 }
 
 func TestSyncSetDifference(t *testing.T) {
-	Convey("HashSet Difference", t, func() {
-		Convey("Two Empty Set", func() {
-			So(NewSyncSet[int]().Difference(NewSyncSet[int]()).Values(), ShouldBeEmpty)
+	t.Run("HashSet Difference", func(t *testing.T) {
+		t.Run("Two Empty Set", func(t *testing.T) {
+			assert.Empty(t, NewSyncSet[int]().Difference(NewSyncSet[int]()).Values())
 		})
-		Convey("Difference of non-empty and empty sets", func() {
+		t.Run("Difference of non-empty and empty sets", func(t *testing.T) {
 			s1 := NewSyncSet[int]()
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldBeEmpty)
+			assert.Empty(t, vs)
 		})
-		Convey("Difference of non-empty and empty sets 2", func() {
+		t.Run("Difference of non-empty and empty sets 2", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet[int]()
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Difference of two sets without intersection", func() {
+		t.Run("Difference of two sets without intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(6, 7, 8, 9)
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("Difference of two sets with intersection", func() {
+		t.Run("Difference of two sets with intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(3, 4, 5, 6)
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2})
+			assert.EqualValues(t, []int{1, 2}, vs)
 		})
-		Convey("Difference of two sets with intersection 2", func() {
+		t.Run("Difference of two sets with intersection 2", func(t *testing.T) {
 			s1 := NewSyncSet(3, 4, 5, 6)
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{5, 6})
+			assert.EqualValues(t, []int{5, 6}, vs)
 		})
-		Convey("Difference of two identical sets", func() {
+		t.Run("Difference of two identical sets", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(1, 2, 3, 4)
-			So(s1.Difference(s2).Values(), ShouldBeEmpty)
+			assert.Empty(t, s1.Difference(s2).Values())
 		})
-		Convey("Difference of two sets without difference", func() {
+		t.Run("Difference of two sets without difference", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(2, 3)
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 4})
+			assert.EqualValues(t, []int{1, 4}, vs)
 		})
-		Convey("Difference of two sets without difference 2", func() {
+		t.Run("Difference of two sets without difference 2", func(t *testing.T) {
 			s1 := NewSyncSet(2, 3)
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.Difference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldBeEmpty)
+			assert.Empty(t, vs)
 		})
 	})
 }
 
 func TestSyncSetSymmetricDifference(t *testing.T) {
-	Convey("HashSet SymmetricDifference", t, func() {
-		Convey("Two Empty Set", func() {
-			So(NewSyncSet[int]().SymmetricDifference(NewSyncSet[int]()).Values(), ShouldBeEmpty)
+	t.Run("HashSet SymmetricDifference", func(t *testing.T) {
+		t.Run("Two Empty Set", func(t *testing.T) {
+			assert.Empty(t, NewSyncSet[int]().SymmetricDifference(NewSyncSet[int]()).Values())
 		})
-		Convey("SymmetricDifference of non-empty and empty sets", func() {
+		t.Run("SymmetricDifference of non-empty and empty sets", func(t *testing.T) {
 			s1 := NewSyncSet[int]()
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("SymmetricDifference of non-empty and empty sets 2", func() {
+		t.Run("SymmetricDifference of non-empty and empty sets 2", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet[int]()
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4})
+			assert.EqualValues(t, []int{1, 2, 3, 4}, vs)
 		})
-		Convey("SymmetricDifference of two sets without intersection", func() {
+		t.Run("SymmetricDifference of two sets without intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(6, 7, 8, 9)
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 3, 4, 6, 7, 8, 9})
+			assert.EqualValues(t, []int{1, 2, 3, 4, 6, 7, 8, 9}, vs)
 		})
-		Convey("SymmetricDifference of two sets with intersection", func() {
+		t.Run("SymmetricDifference of two sets with intersection", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(3, 4, 5, 6)
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 5, 6})
+			assert.EqualValues(t, []int{1, 2, 5, 6}, vs)
 		})
-		Convey("SymmetricDifference of two sets with intersection 2", func() {
+		t.Run("SymmetricDifference of two sets with intersection 2", func(t *testing.T) {
 			s1 := NewSyncSet(3, 4, 5, 6)
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 2, 5, 6})
+			assert.EqualValues(t, []int{1, 2, 5, 6}, vs)
 		})
-		Convey("SymmetricDifference of two identical sets", func() {
+		t.Run("SymmetricDifference of two identical sets", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(1, 2, 3, 4)
-			So(s1.SymmetricDifference(s2).Values(), ShouldBeEmpty)
+			assert.Empty(t, s1.SymmetricDifference(s2).Values())
 		})
-		Convey("SymmetricDifference of two sets without difference", func() {
+		t.Run("SymmetricDifference of two sets without difference", func(t *testing.T) {
 			s1 := NewSyncSet(1, 2, 3, 4)
 			s2 := NewSyncSet(2, 3)
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 4})
+			assert.EqualValues(t, []int{1, 4}, vs)
 		})
-		Convey("SymmetricDifference of two sets without difference 2", func() {
+		t.Run("SymmetricDifference of two sets without difference 2", func(t *testing.T) {
 			s1 := NewSyncSet(2, 3)
 			s2 := NewSyncSet(1, 2, 3, 4)
 			vs := s1.SymmetricDifference(s2).Values()
 			sort.Ints(vs)
-			So(vs, ShouldResemble, []int{1, 4})
+			assert.EqualValues(t, []int{1, 4}, vs)
 		})
 	})
 }
 
 func TestSyncSetString(t *testing.T) {
-	Convey("Set String", t, func() {
-		Convey("empty collection", func() {
-			So(NewSyncSet[int]().String(), ShouldEqual, "[]")
+	t.Run("Set String", func(t *testing.T) {
+		t.Run("empty collection", func(t *testing.T) {
+			assert.Equal(t, "[]", NewSyncSet[int]().String())
 		})
-		Convey("non-empty collection", func() {
-			So(NewSyncSet(1).String(), ShouldEqual, "[1]")
+		t.Run("non-empty collection", func(t *testing.T) {
+			assert.Equal(t, "[1]", NewSyncSet(1).String())
 		})
 	})
 }

@@ -5,33 +5,33 @@ import (
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWithParam(t *testing.T) {
-	Convey("WithParam 测试", t, func() {
+	t.Run("WithParam 测试", func(t *testing.T) {
 		opt := WithParam(map[string]string{"name": "world"})
-		So(opt, ShouldNotBeNil)
+		assert.NotNil(t, opt)
 	})
 }
 
 func TestWithPluralCount(t *testing.T) {
-	Convey("WithPluralCount 测试", t, func() {
+	t.Run("WithPluralCount 测试", func(t *testing.T) {
 		opt := WithPluralCount(5)
-		So(opt, ShouldNotBeNil)
+		assert.NotNil(t, opt)
 	})
 }
 
 func TestLocaleOption(t *testing.T) {
-	Convey("LocaleOption 类型测试", t, func() {
+	t.Run("LocaleOption 类型测试", func(t *testing.T) {
 		var opt LocaleOption = func(lc *i18n.LocalizeConfig) {}
-		So(opt, ShouldNotBeNil)
+		assert.NotNil(t, opt)
 	})
 }
 
 func TestOptionType(t *testing.T) {
-	Convey("Option 类型测试", t, func() {
+	t.Run("Option 类型测试", func(t *testing.T) {
 		var opt Option = func(ls *langset) {}
-		So(opt, ShouldNotBeNil)
+		assert.NotNil(t, opt)
 	})
 }
