@@ -1,4 +1,4 @@
-package ssh
+package sshx
 
 import "golang.org/x/crypto/ssh"
 
@@ -31,6 +31,21 @@ func WithPasswordAuth(fn func(user, password string) bool) Option {
 			return nil, ssh.ErrNoAuth
 		}
 	}
+}
+
+func WithPublicKeyAuth(fn func(conn ssh.ConnMetadata, key ssh.PublicKey) bool) Option {
+	return func(s *Server) {
+		s.config.PublicKeyCallback = func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+			if fn(conn, key) {
+				return nil, nil
+			}
+			return nil, ssh.ErrNoAuth
+		}
+	}
+}
+
+func WithShellPath(path string) Option {
+	return func(s *Server) { s.shellPath = path }
 }
 
 func WithUser(name, password string) Option {

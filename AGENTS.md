@@ -11,10 +11,10 @@ The project is structured as a library, not an application. The `cmd/go-tool` di
 ## Common Commands
 
 ### Building and Testing
-- `go build ./...` - Build all packages (skip `transport/ssh` which is incomplete)
+- `go build ./...` - Build all packages
 - `go test ./...` - Run all tests
 - `go test -race ./...` - Run tests with race detector
-- `go test -count=1 -timeout 120s $(go list ./... | grep -v transport/ssh)` - CI test command (excludes broken transport/ssh)
+- `go test -count=1 -timeout 120s $(go list ./... | grep -v -E 'monitor/(ping|web|prometheus|multi|snmp)')` - CI test command
 - `go test -coverprofile=cover.cov ./...` - Generate coverage report
 - `go test ./ds` - Test a specific package
 
@@ -76,13 +76,13 @@ Major external dependencies:
 - **`transport/httpx/encoder/json.go:RequestHeader()`** — infinite recursion bug (calls `d.RequestHeader()` instead of `d.compressor.RequestHeader()`)
 - **`monitor/web/monitor.go:NewMonitor()`** — does not set `m.method` field
 - **`transport/httpx/decoder/json.go:Decode()`** — decodes twice, second Decode always fails with EOF
-- **`transport/ssh/` and `monitor/snmp/`** — incomplete/untracked code, excluded from build
+- **`monitor/snmp/`** — incomplete/untracked code, excluded from build
 
 ## CI
 
 GitHub Actions workflow at `.github/workflows/test.yml`:
 - Trigger: push/PR to main/master
-- Go 1.25, runs `go vet ./...`, `go build ./...`, `go test -race -timeout 120s` (excludes `transport/ssh` and some network-dependent monitor subpackages that now have offline tests)
+- Go 1.25, runs `go vet ./...`, `go build ./...`, `go test -race -timeout 120s` (excludes some network-dependent monitor subpackages)
 
 ## Commit Style
 Conventional commits: `feat:`, `fix:`, `chore:`, `perf:`, `refactor:`, `doc:`.
