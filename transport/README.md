@@ -155,11 +155,11 @@ sshSrv := sshx.NewServer(
     sshx.WithUser("admin", "pass"),
 )
 
-// HTTP
-httpSrv := &httpService{srv: &http.Server{Handler: handler}}
+// HTTP (stdlib, Echo, or Gin wrapped in http.Server)
+httpSrv := &http.Server{Handler: handler}
 
-mux.Route("ssh", sshSrv)   // detected by "SSH-" prefix
-mux.Route("http", httpSrv) // detected by "GET"/"POST"/... prefix
+mux.Route("ssh", sshSrv)                                 // detected by "SSH-" prefix
+mux.Route("http", httpx.WrapHTTPServer(httpSrv))         // detected by "GET"/"POST"/... prefix
 
 svcs := &srvx.Services{}
 svcs.Register(mux)
@@ -204,21 +204,22 @@ func (myMatcher) Match(sniffed []byte) bool {
 
 ### HTTP service adapter
 
-```go
-type httpService struct {
-    srv *http.Server
-    l   net.Listener
-}
+Use `httpx.WrapHTTPServer()` to wrap any `*http.Server`:
 
-func (hs *httpService) Name() string                                     { return "http" }
-func (hs *httpService) Match() connmux.Matcher                           { return connmux.MatchHTTP1 }
-func (hs *httpService) SetListener(l net.Listener)                       { hs.l = l }
-func (hs *httpService) Init(_ context.Context) error                     { return nil }
-func (hs *httpService) Destroy(_ context.Context) error                  { return hs.srv.Close() }
-func (hs *httpService) Run(ctx context.Context) error {
-    if err := hs.srv.Serve(hs.l); err != http.ErrServerClosed { return err }
-    return nil
-}
+```go
+mux.Route("http", httpx.WrapHTTPServer(&http.Server{Handler: handler}))
+```
+
+For Echo or Gin, wrap the framework in an `*http.Server`:
+
+```go
+// Echo
+e := echo.New()
+mux.Route("http", httpx.WrapHTTPServer(&http.Server{Handler: e}))
+
+// Gin
+g := gin.New()
+mux.Route("http", httpx.WrapHTTPServer(&http.Server{Handler: g}))
 ```
 
 ### Lifecycle

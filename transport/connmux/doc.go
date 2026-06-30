@@ -9,12 +9,16 @@
 //	mux := connmux.NewMux(connmux.WithAddr(":443"))
 //
 //	sshSrv := sshx.NewServer(sshx.WithHostKey(key), sshx.WithUser("admin", "pass"))
-//	httpSrv := &httpService{srv: &http.Server{Handler: handler}}
 //
-//	mux.Route("ssh", sshSrv)   // SSH connections matched by "SSH-" prefix
-//	mux.Route("http", httpSrv) // HTTP connections matched by GET/POST/... prefix
+//	mux.Route("ssh", sshSrv)                            // SSH connections matched by "SSH-" prefix
+//	mux.Route("http", httpx.WrapHTTPServer(&http.Server{...})) // HTTP via GET/POST/... prefix
 //
 //	srvx.Services{}.Register(mux).Run(ctx)
+//
+// For Echo or Gin, wrap the framework in an http.Server:
+//
+//	connmux.WrapHTTPServer(&http.Server{Handler: echoInstance})
+//	connmux.WrapHTTPServer(&http.Server{Handler: ginEngine})
 //
 // # Protocol Detection
 //
@@ -52,22 +56,14 @@
 //
 // # HTTP Service Adapter
 //
-// http.Server can be adapted to ListenedService:
+// Use httpx.WrapHTTPServer to wrap an *http.Server into ListenedService:
 //
-//	type httpService struct {
-//	    srv *http.Server
-//	    l   net.Listener
-//	}
+//	mux.Route("http", httpx.WrapHTTPServer(&http.Server{Handler: handler}))
 //
-//	func (hs *httpService) Name() string           { return "http" }
-//	func (hs *httpService) Match() Matcher         { return MatchHTTP1 }
-//	func (hs *httpService) SetListener(l net.Listener) { hs.l = l }
-//	func (hs *httpService) Init(_ context.Context) error { return nil }
-//	func (hs *httpService) Destroy(_ context.Context) error { return hs.srv.Close() }
-//	func (hs *httpService) Run(ctx context.Context) error {
-//	    if err := hs.srv.Serve(hs.l); err != http.ErrServerClosed { return err }
-//	    return nil
-//	}
+// Echo and Gin are supported by passing the framework as the handler:
+//
+//	httpx.WrapHTTPServer(&http.Server{Handler: echoInstance})
+//	httpx.WrapHTTPServer(&http.Server{Handler: ginEngine})
 //
 // # SSH Service Integration
 //
