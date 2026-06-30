@@ -39,7 +39,7 @@ Each top-level directory is a separate Go module (package) with its own responsi
 - **i18n**: Internationalization wrappers
 - **logx**: Logging facade with implementations for zap and zerolog
 - **monitor**: Monitoring framework (core types, ping, Prometheus, SNMP, web, multi)
-- **transport**: Transport utilities (HTTP/httpx, SSH)
+- **transport**: Transport utilities (HTTP/httpx, SSH/sshx, FRP/frpx)
 - **osx**: OS utilities
 - **mathx**: Math utilities
 - **spider**: Web scraping utilities

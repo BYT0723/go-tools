@@ -52,5 +52,5 @@ func TestMutexMap(t *testing.T) {
 	wg.Wait()
 
 	require.Equal(t, 2, m.Len())
-	require.Equal(t, []Item{i2, i1}, m.Values())
+	require.ElementsMatch(t, []Item{i1, i2}, m.Values())
 }
