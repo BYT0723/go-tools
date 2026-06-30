@@ -30,6 +30,8 @@
 | `srvx` | Service lifecycle management (Init → Run → Destroy) |
 | `transport/httpx` | HTTP client wrapper with encoder/decoder/compressor |
 | `transport/httpx/middleware` | Gin and Echo middleware (logger, trace context injection) |
+| `transport/sshx` | SSH server with PTY shell, exec, and port forwarding (`-L`/`-R`) |
+| `transport/frpx` | FRP (Fast Reverse Proxy) V2 client for exposing local services behind NAT |
 | `unsafex` | Unsafe operations with benchmarks |
 
 ## Development
