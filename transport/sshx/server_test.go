@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BYT0723/go-tools/transport/connmux"
 	"github.com/stretchr/testify/assert"
 	xssh "golang.org/x/crypto/ssh"
 )
@@ -494,4 +495,66 @@ func TestShellSession(t *testing.T) {
 	}
 	output := string(buf[:n])
 	assert.Contains(t, output, "SHELL_OK")
+}
+
+func TestMuxSSHIntegration(t *testing.T) {
+	key, err := GenerateHostKey()
+	assert.NoError(t, err)
+
+	mux := connmux.NewMux()
+
+	sshSrv := NewServer(
+		WithHostKey(key),
+		WithPasswordAuth(func(user, password string) bool {
+			return user == "test" && password == "test"
+		}),
+	)
+
+	mux.Route("ssh", sshSrv)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- mux.Run(ctx)
+	}()
+
+	time.Sleep(150 * time.Millisecond)
+	addr := mux.Addr()
+
+	clientCfg := &xssh.ClientConfig{
+		User:            "test",
+		Auth:            []xssh.AuthMethod{xssh.Password("test")},
+		HostKeyCallback: xssh.InsecureIgnoreHostKey(),
+		Timeout:         5 * time.Second,
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+	assert.NoError(t, err)
+
+	sshConn, chans, reqs, err := xssh.NewClientConn(conn, addr, clientCfg)
+	assert.NoError(t, err)
+
+	client := xssh.NewClient(sshConn, chans, reqs)
+
+	session, err := client.NewSession()
+	assert.NoError(t, err)
+
+	output, err := session.Output("echo CONNMUX_OK")
+	assert.NoError(t, err)
+	assert.Contains(t, string(output), "CONNMUX_OK")
+
+	session.Close()
+	client.Close()
+	sshConn.Close()
+	conn.Close()
+
+	cancel()
+	select {
+	case err = <-errCh:
+		assert.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout waiting for mux shutdown")
+	}
 }

@@ -14,6 +14,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/BYT0723/go-tools/transport/connmux"
 	"github.com/creack/pty"
 	xssh "golang.org/x/crypto/ssh"
 )
@@ -31,8 +32,9 @@ type (
 		running  bool
 		handler  Handler
 
-		shellPath string
-		wg        sync.WaitGroup
+		ownsListener bool
+		shellPath    string
+		wg           sync.WaitGroup
 	}
 )
 
@@ -48,6 +50,16 @@ func NewServer(opts ...Option) *Server {
 	return s
 }
 
+func (s *Server) SetListener(l net.Listener) {
+	s.mu.Lock()
+	s.listener = l
+	s.mu.Unlock()
+}
+
+func (s *Server) Match() connmux.Matcher {
+	return connmux.MatchSSH
+}
+
 func (s *Server) Start(ctx context.Context) error {
 	s.mu.Lock()
 	if s.running {
@@ -55,6 +67,18 @@ func (s *Server) Start(ctx context.Context) error {
 		return fmt.Errorf("server already running")
 	}
 	s.running = true
+
+	if s.listener != nil {
+		s.wg.Add(1)
+		go func() {
+			defer s.wg.Done()
+			s.serve(ctx)
+		}()
+		s.mu.Unlock()
+		return nil
+	}
+
+	s.ownsListener = true
 	s.mu.Unlock()
 
 	lc := net.ListenConfig{}
@@ -62,6 +86,7 @@ func (s *Server) Start(ctx context.Context) error {
 	if err != nil {
 		s.mu.Lock()
 		s.running = false
+		s.ownsListener = false
 		s.mu.Unlock()
 		return err
 	}
@@ -78,10 +103,10 @@ func (s *Server) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server) Stop(ctx context.Context) error {
+func (s *Server) Stop(_ context.Context) error {
 	s.mu.Lock()
 	s.running = false
-	if s.listener != nil {
+	if s.listener != nil && s.ownsListener {
 		s.listener.Close()
 	}
 	s.mu.Unlock()
