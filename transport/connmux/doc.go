@@ -2,6 +2,89 @@
 // It sniffs the initial bytes of incoming connections to identify the protocol
 // and dispatches each connection to the matching service via VirtualListener.
 //
-// Services implement the ListenedService interface (srvx.Service + SetListener + Match).
-// Mux manages the full lifecycle of all routed services.
+// # Quick Start
+//
+// The core workflow: create a Mux, create protocol services, route them, and run:
+//
+//	mux := connmux.NewMux(connmux.WithAddr(":443"))
+//
+//	sshSrv := sshx.NewServer(sshx.WithHostKey(key), sshx.WithUser("admin", "pass"))
+//	httpSrv := &httpService{srv: &http.Server{Handler: handler}}
+//
+//	mux.Route("ssh", sshSrv)   // SSH connections matched by "SSH-" prefix
+//	mux.Route("http", httpSrv) // HTTP connections matched by GET/POST/... prefix
+//
+//	srvx.Services{}.Register(mux).Run(ctx)
+//
+// # Protocol Detection
+//
+// Mux reads the first N bytes of each connection (default 256) and evaluates
+// each route's Matcher in registration order. The first match wins. The last
+// registered route acts as a catch-all (typically using MatchDefault).
+//
+// Built-in matchers:
+//   - MatchSSH: matches "SSH-" prefix (SSH-2.0 banners)
+//   - MatchHTTP1: matches HTTP/1.x method prefixes (GET, POST, HEAD, PUT, DELETE,
+//     OPTIONS, PATCH, CONNECT, TRACE)
+//   - MatchDefault: matches everything (catch-all)
+//
+// Custom matchers implement the Matcher interface:
+//
+//	type myMatcher struct{}
+//	func (myMatcher) Match(sniffed []byte) bool { return bytes.HasPrefix(sniffed, []byte("MYPROTO")) }
+//
+// # ListenedService Interface
+//
+// Services routed through Mux must implement ListenedService:
+//
+//	type ListenedService interface {
+//	    Name() string
+//	    Init(ctx context.Context) error
+//	    Run(ctx context.Context) error
+//	    Destroy(ctx context.Context) error
+//	    SetListener(net.Listener)
+//	    Match() Matcher
+//	}
+//
+// Match() declares the protocol this service handles.
+// SetListener() receives the VirtualListener that Mux will push connections to.
+// Init/Run/Destroy follow the srvx.Service lifecycle, managed automatically by Mux.Run().
+//
+// # HTTP Service Adapter
+//
+// http.Server can be adapted to ListenedService:
+//
+//	type httpService struct {
+//	    srv *http.Server
+//	    l   net.Listener
+//	}
+//
+//	func (hs *httpService) Name() string           { return "http" }
+//	func (hs *httpService) Match() Matcher         { return MatchHTTP1 }
+//	func (hs *httpService) SetListener(l net.Listener) { hs.l = l }
+//	func (hs *httpService) Init(_ context.Context) error { return nil }
+//	func (hs *httpService) Destroy(_ context.Context) error { return hs.srv.Close() }
+//	func (hs *httpService) Run(ctx context.Context) error {
+//	    if err := hs.srv.Serve(hs.l); err != http.ErrServerClosed { return err }
+//	    return nil
+//	}
+//
+// # SSH Service Integration
+//
+// sshx.Server implements ListenedService directly via SetListener() and Match() methods:
+//
+//	sshSrv := sshx.NewServer(sshx.WithHostKey(key), sshx.WithPasswordAuth(authFn))
+//	mux.Route("ssh", sshSrv) // sshx.Match() returns connmux.MatchSSH
+//
+// # Lifecycle
+//
+// Mux.Run() manages the full lifecycle of all routed services:
+//
+//  1. Creates the real TCP listener
+//  2. Calls SetListener() on each service (injects VirtualListener)
+//  3. Calls Init() on each service (rolls back on failure)
+//  4. Starts Run() goroutines for all successfully inited services
+//  5. Starts the accept/sniff/dispatch serve loop
+//  6. On context cancellation: stops the real listener, stops serve, cancels
+//     sub-service contexts, waits for Run() to return, calls Destroy()
 package connmux

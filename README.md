@@ -35,6 +35,8 @@
 | `transport/connmux` | Single-port multi-protocol multiplexer (sniff + dispatch to sub-services) |
 | `unsafex` | Unsafe operations with benchmarks |
 
+See [transport/README.md](transport/README.md) for detailed usage examples of the transport packages.
+
 ## Development
 
 ### Testing
