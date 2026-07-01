@@ -8,9 +8,11 @@ Network transport utilities for Go services.
 | ------------------------------------- | -------------------------------------------------------- |
 | [sshx](#sshx)                         | Embeddable SSH server (PTY shell, exec, port forwarding) |
 | [frpx](#frpx)                         | FRP V2 client (expose local services behind NAT)         |
-| [connmux](#connmux)                   | Single-port multi-protocol connection multiplexer        |
-| [httpx](httpx/)                       | HTTP client wrapper (encoder, decoder, compressor)       |
-| [httpx/middleware](httpx/middleware/) | Gin and Echo middleware (logging, trace context)         |
+| [connmux](#connmux) | Single-port multi-protocol connection multiplexer |
+| [grpcx](#grpcx) | gRPC server adapter for connmux |
+| [tlsx](#tlsx) | TLS termination adapter for connmux |
+| [httpx](httpx/) | HTTP client wrapper (encoder, decoder, compressor) |
+| [httpx/middleware](httpx/middleware/) | Gin and Echo middleware (logging, trace context) |
 
 ---
 
@@ -246,3 +248,44 @@ sshx.Server implements `connmux.ListenedService` directly — no adapter needed:
 sshSrv := sshx.NewServer(...)
 mux.Route("ssh", sshSrv) // sshx.Match() returns connmux.MatchSSH
 ```
+
+---
+
+## grpcx
+
+gRPC server adapter for connmux.
+
+### WrapGRPCServer
+
+```go
+import "github.com/BYT0723/go-tools/transport/grpcx"
+
+grpcSrv := grpc.NewServer()
+pb.RegisterEchoServer(grpcSrv, &echoImpl{})
+
+mux.Route("grpc", grpcx.WrapGRPCServer(grpcSrv))
+// grpcx.Match() returns connmux.MatchHTTP2
+```
+
+The gRPC server is served directly on the VirtualListener — no intermediate `*http.Server` needed. Shutdown
+via `grpc.Server.Stop()`.
+
+---
+
+## tlsx
+
+TLS termination adapter for connmux. Decrypts TLS connections and passes plaintext
+to an arbitrary handler — works with HTTP, gRPC, custom TCP.
+
+### WrapTLS
+
+```go
+import "github.com/BYT0723/go-tools/transport/tlsx"
+
+mux.Route("tls", tlsx.WrapTLS(tlsCfg, func(conn net.Conn) {
+    // conn is TLS-negotiated plaintext
+    httpSrv.Serve(&tlsx.SingleConnListener{Conn: conn})
+}))
+```
+
+Protocol-agnostic — the handler receives a raw `net.Conn` after TLS handshake.
