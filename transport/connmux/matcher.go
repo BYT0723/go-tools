@@ -21,8 +21,10 @@ type defaultMatcher struct{}
 func (defaultMatcher) Match([]byte) bool { return true }
 
 var (
-	MatchSSH    Matcher = &bytePrefixMatcher{prefix: []byte("SSH-")}
-	MatchHTTP1  Matcher = http1Matcher{}
+	MatchSSH     Matcher = &bytePrefixMatcher{prefix: []byte("SSH-")}
+	MatchHTTP1   Matcher = http1Matcher{}
+	MatchHTTP2   Matcher = &bytePrefixMatcher{prefix: []byte("PRI * HTTP/2.0")}
+	MatchTLS     Matcher = &bytePrefixMatcher{prefix: []byte{0x16, 0x03}}
 	MatchDefault Matcher = defaultMatcher{}
 )
 

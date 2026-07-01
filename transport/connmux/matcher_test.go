@@ -8,9 +8,9 @@ import (
 
 func TestMatchSSH(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   []byte
-		match   bool
+		name  string
+		input []byte
+		match bool
 	}{
 		{"SSH banner", []byte("SSH-2.0-OpenSSH_9.0"), true},
 		{"SSH short", []byte("SSH-"), true},
@@ -63,4 +63,21 @@ func TestMatchDefault(t *testing.T) {
 	assert.True(t, MatchDefault.Match([]byte{}))
 	assert.True(t, MatchDefault.Match([]byte{0x00}))
 	assert.True(t, MatchDefault.Match([]byte("anything")))
+}
+
+func TestMatchHTTP2(t *testing.T) {
+	assert.True(t, MatchHTTP2.Match([]byte("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")))
+	assert.True(t, MatchHTTP2.Match([]byte("PRI * HTTP/2.0")))
+	assert.False(t, MatchHTTP2.Match([]byte("PRI")))
+	assert.False(t, MatchHTTP2.Match([]byte("GET / HTTP/2.0")))
+	assert.False(t, MatchHTTP2.Match([]byte{}))
+}
+
+func TestMatchTLS(t *testing.T) {
+	assert.True(t, MatchTLS.Match([]byte{0x16, 0x03, 0x01})) // TLS 1.0
+	assert.True(t, MatchTLS.Match([]byte{0x16, 0x03, 0x03})) // TLS 1.2/1.3
+	assert.True(t, MatchTLS.Match([]byte{0x16, 0x03}))       // minimal
+	assert.False(t, MatchTLS.Match([]byte{0x16}))
+	assert.False(t, MatchTLS.Match([]byte{0x17, 0x03})) // application data record
+	assert.False(t, MatchTLS.Match([]byte{}))
 }

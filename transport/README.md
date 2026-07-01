@@ -158,8 +158,11 @@ sshSrv := sshx.NewServer(
 // HTTP (stdlib, Echo, or Gin wrapped in http.Server)
 httpSrv := &http.Server{Handler: handler}
 
-mux.Route("ssh", sshSrv)                                 // detected by "SSH-" prefix
-mux.Route("http", httpx.WrapHTTPServer(httpSrv))         // detected by "GET"/"POST"/... prefix
+// Four-way routing (SSH + HTTP/1.1 + HTTP/2 + TLS)
+mux.Route("ssh", sshSrv)                                 // MatchSSH
+mux.Route("http1", httpx.WrapHTTPServer(http1Srv))        // MatchHTTP1
+mux.Route("grpc", &myGRPCService{})                       // implements Match() → MatchHTTP2
+mux.Route("tls", &myTLSService{})                         // implements Match() → MatchTLS
 
 svcs := &srvx.Services{}
 svcs.Register(mux)
@@ -188,9 +191,11 @@ svcs.Run(ctx)
 
 | Matcher        | Prefix                                                                 | Example               |
 | -------------- | ---------------------------------------------------------------------- | --------------------- |
-| `MatchSSH`     | `SSH-`                                                                 | `SSH-2.0-OpenSSH_9.0` |
-| `MatchHTTP1`   | `GET `, `POST`, `HEAD`, `PUT `, `DELE`, `OPTI`, `PATC`, `CONN`, `TRAC` | `GET / HTTP/1.1`      |
-| `MatchDefault` | _anything_                                                             | catch-all             |
+| `MatchSSH`     | `SSH-`                                                                 | `SSH-2.0-OpenSSH_9.0`   |
+| `MatchHTTP1`   | `GET `, `POST`, `HEAD`, `PUT `, `DELE`, `OPTI`, `PATC`, `CONN`, `TRAC` | `GET / HTTP/1.1`        |
+| `MatchHTTP2`   | `PRI * HTTP/2.0`                                                       | HTTP/2 preface (gRPC)   |
+| `MatchTLS`     | `{0x16, 0x03}`                                                         | TLS handshake record    |
+| `MatchDefault` | _anything_                                                             | catch-all               |
 
 ### Custom matcher
 

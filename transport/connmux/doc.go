@@ -30,6 +30,8 @@
 //   - MatchSSH: matches "SSH-" prefix (SSH-2.0 banners)
 //   - MatchHTTP1: matches HTTP/1.x method prefixes (GET, POST, HEAD, PUT, DELETE,
 //     OPTIONS, PATCH, CONNECT, TRACE)
+//   - MatchHTTP2: matches "PRI * HTTP/2.0" prefix (HTTP/2 connection preface, gRPC)
+//   - MatchTLS: matches {0x16, 0x03} prefix (TLS handshake record)
 //   - MatchDefault: matches everything (catch-all)
 //
 // Custom matchers implement the Matcher interface:
